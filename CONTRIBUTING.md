@@ -1,34 +1,33 @@
-# Участие в разработке Parnasocial
+# Contributing to Parnasocial
 
-## Перед началом работы
+## Before You Begin
 
-### Общие положения
+### General Guidelines
 
-- Если проблема или предложение касаются конкретной платформы, создайте соответствующий запрос (issue) или пул-реквест (PR) в репозитории этой платформы, а не здесь.
-- Не используйте ИИ для создания описаний проблем или пул-реквестов. В противном случае вы будете заблокированы за спам без предварительного рассмотрения. Нам нужны вклады от людей, а не от ботов.
+- If an issue or suggestion relates to a specific platform, please create an issue or pull request (PR) in that platform's repository, not here.
+- Do not use AI to generate issue descriptions or pull requests. Doing so will result in a block for spam, without prior review. We welcome contributions from humans, not bots.
 
-### Проблемы (Issues)
+### Issues
 
-- Прежде чем сообщать о новой ошибке или предлагать новую функцию, проверьте, не обсуждалось ли это ранее.
-- При создании запроса следуйте шаблону и старайтесь излагать суть максимально конкретно.
-- Не создавайте дубликаты. Мы оставляем за собой право заблокировать вас, если вы будете систематически тратить наше время из-за нежелания ознакомиться с уже имеющейся информацией.
+- Before reporting a new bug or suggesting a new feature, please check whether it has already been discussed.
+- When creating an issue, follow the provided template and be as specific as possible.
+- Do not create duplicate issues. We reserve the right to block you if you repeatedly waste our time by failing to check existing information.
 
-### Вклад в проект
+### Contributing
 
-- Если вы планируете внести существенные изменения, сначала создайте запрос (issue) и дождитесь подтверждения от сопровождающего (maintainer) — он должен подтвердить наличие ошибки или согласиться с тем, что предложенная функция необходима.
-- Если задача, над которой вы хотите поработать, давно не обновлялась, свяжитесь с активным сопровождающим проекта и сообщите о своем намерении внести вклад.
-- Не используйте ИИ для подготовки кода или документации, если вы до конца не понимаете результат его работы. Мы навсегда заблокируем вас, если вы начнете «заспамливать» наши репозитории низкокачественным контентом, сгенерированным ИИ.
+- If you plan to make significant changes, please open an issue first and wait for confirmation from a maintainer—they must verify the bug or agree that the proposed feature is necessary.
+- If the task you wish to work on has not been updated for a long time, please reach out to an active project maintainer to express your intent to contribute.
+- Do not use AI to prepare code or documentation unless you fully understand the output. We will permanently block you if you "spam" our repositories with low-quality, AI-generated content.
 
-## Pull-реквесты
+## Pull Requests
 
-Перед созданием pull-реквеста убедитесь, что:
+Before submitting a pull request, ensure that:
 
-- Изменения связаны с одобренным запросом на добавление функционала (feature request) или подтвержденной ошибкой (bug).
-- Ветка собирается и работает без сбоев, а также прошла тщательное тестирование.
-  В противном случае pull-реквест следует пометить как черновик (draft).
-- В описании pull-реквеста четко разъяснен объем внесенных изменений. При необходимости добавьте визуальные материалы (скриншоты, видео).
-- Указано, на каких платформах проводилось тестирование.
-- 
-## Лицензирование
+- The changes are linked to an approved feature request or a confirmed bug. - The branch builds and runs without issues, and has undergone thorough testing.
+  Otherwise, the pull request should be marked as a draft.
+- The pull request description clearly explains the scope of the changes. Include visual materials (screenshots, videos) if necessary.
+- The platforms on which testing was performed are specified.
+-
+## Licensing
 
-Внося вклад в проект Parnasocial, вы соглашаетесь с тем, что ваши изменения будут распространяться на условиях лицензии, действующей для данного репозитория.
+By contributing to the Parnasocial project, you agree that your changes will be distributed under the terms of the license that applies to this repository.
