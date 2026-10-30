@@ -135,11 +135,11 @@ function createWindow() {
         show: false,
         title: APP_NAME,
         icon: ICON_PATH,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#ffffff',
         thickFrame: true,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: '#f9f9f9',
+            color: '#ffffff',
             symbolColor: '#101010',
             height: WINDOW_CONTROLS_HEIGHT
         },
