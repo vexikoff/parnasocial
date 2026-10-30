@@ -23,6 +23,7 @@
   padding: 0;
   margin: 0;
   font-family: "Xmind", "DM Sans", sans-serif;
+  color: #101010;
 }
 
 body {
@@ -86,6 +87,12 @@ body {
   background-color: #DDDDDD;
 }
 
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
 .grad {
   position: absolute;
   display: flex;
@@ -120,6 +127,7 @@ body {
   gap: 8px;
 }
 .main .left {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -128,13 +136,33 @@ body {
   box-sizing: border-box;
   background-color: rgb(255, 255, 255);
   height: 100%;
-  min-width: 128px;
+  min-width: 156px;
   border-radius: 8px;
+}
+.main .left .search {
+  position: absolute;
+  display: flex;
+  left: 8px;
+  right: 36px;
+  top: 8px;
+  height: 24px;
+  border: none;
+  box-sizing: border-box;
+  background-color: rgb(245, 245, 245);
+  padding: 4px;
+  border-radius: 4px;
+}
+.main .left .search:focus {
+  outline: none;
+}
+.main .left .search.skr {
+  display: none;
 }
 .main .left .top {
   display: flex;
   flex-direction: row;
   gap: 4px;
+  justify-content: space-between;
 }
 .main .left .top .button {
   display: flex;
@@ -146,6 +174,7 @@ body {
   border-radius: 4px;
   width: 24px;
   height: 24px;
+  transition: all cubic-bezier(0, 0, 0, 1) 83ms;
 }
 .main .left .top .button:hover {
   background-color: rgb(245, 245, 245);
@@ -165,6 +194,52 @@ body {
   height: 100%;
   min-width: 128px;
   border-radius: 8px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.main .center h1 {
+  font-size: 32px;
+  font-variation-settings: "wght" 300;
+  margin-bottom: 12px;
+}
+.main .center .player {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin-top: 12px;
+}
+.main .center .player .prew {
+  background-color: #000000;
+  width: 384px;
+  height: 384px;
+  border-radius: 8px;
+}
+.main .center .player .play {
+  background-color: rgba(235, 235, 235, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: default;
+  font-size: 20px;
+  color: #101010;
+  transition: all cubic-bezier(0, 0, 0, 1) 83ms;
+}
+.main .center .player .play:hover {
+  background-color: rgba(225, 225, 225, 0.8);
+}
+.main .center .player .pr {
+  background-color: transparent;
+  border: none;
+  width: 48px;
+  border-radius: 50%;
+  height: 48px;
+  cursor: default;
+  font-size: 20px;
+  color: #101010;
 }
 .main .right {
   display: flex;
@@ -175,13 +250,14 @@ body {
   box-sizing: border-box;
   background-color: rgb(255, 255, 255);
   height: 100%;
-  min-width: 128px;
+  min-width: 184px;
   border-radius: 8px;
 }
 .main .right .top {
   display: flex;
   flex-direction: row;
   gap: 4px;
+  justify-content: space-between;
 }
 .main .right .top .button {
   display: flex;
@@ -193,6 +269,7 @@ body {
   border-radius: 4px;
   width: 24px;
   height: 24px;
+  transition: all cubic-bezier(0, 0, 0, 1) 83ms;
 }
 .main .right .top .button:hover {
   background-color: rgb(245, 245, 245);

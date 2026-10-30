@@ -126,6 +126,28 @@ function registerIpc() {
     });
 }
 
+function getWindowsSystemUsername() {
+    let username = '';
+
+    if (typeof process.env.USERNAME === 'string') {
+        username = process.env.USERNAME.trim();
+    }
+
+    if (username === '' && typeof process.env.USER === 'string') {
+        username = process.env.USER.trim();
+    }
+
+    if (username === '') {
+        username = 'Пользователь';
+    }
+
+    return username;
+}
+
+ipcMain.handle('system:get-windows-username', () => {
+    return getWindowsSystemUsername();
+});
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1280,

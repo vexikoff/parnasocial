@@ -36,3 +36,34 @@ function openset() {
 }
 
 aplittheme();
+
+async function adlf() {
+    const nameHeading = document.getElementById('name');
+
+    if (!nameHeading) {
+        return;
+    }
+
+    if (!window.parnasocial || typeof window.parnasocial.getWindowsUsername !== 'function') {
+        nameHeading.textContent = 'пользователь';
+        return;
+    }
+
+    try {
+        const username = await window.parnasocial.getWindowsUsername();
+
+        if (typeof username === 'string' && username.trim() !== '') {
+            nameHeading.textContent = username.trim();
+        } else {
+            nameHeading.textContent = 'пользователь';
+        }
+    } catch (error) {
+        nameHeading.textContent = 'пользователь';
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adlf);
+} else {
+    adlf();
+}
