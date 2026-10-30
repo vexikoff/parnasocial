@@ -5,19 +5,18 @@
   "private": true,
   "type": "commonjs",
   "main": "main.js",
-  "description": "Simple code editor",
+  "description": "Simple mediaplayer",
   "author": {
     "name": "vexikoff"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "keywords": [
-    "electron",
+    "vexikoff",
     "windows",
-    "editor",
-    "code-editor",
+    "player",
+    "mediaplayer",
     "desktop",
-    "parnasocial",
-    "monaco"
+    "parnasocial"
   ],
   "engines": {
     "node": ">=20.0.0",
@@ -67,6 +66,7 @@
       "main": "main.js"
     },
     "win": {
+      "icon": "assets/Parnasocial.ico",
       "target": [
         {
           "target": "nsis",
@@ -86,6 +86,9 @@
       "publisherName": "Parnasocial"
     },
     "nsis": {
+      "installerIcon": "assets/Parnasocial.ico",
+      "uninstallerIcon": "assets/Parnasocial.ico",
+      "installerHeaderIcon": "assets/Parnasocial.ico",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,

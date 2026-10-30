@@ -37,4 +37,7 @@ Object.freeze(api.app);
 Object.freeze(api.window);
 Object.freeze(api);
 
-contextBridge.exposeInMainWorld('parnasocial', api);
+contextBridge.exposeInMainWorld('parnasocial', {
+    changeth: (theme) => ipcRenderer.send('themechang', theme),
+    ...api
+});
