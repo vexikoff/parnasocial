@@ -91,8 +91,8 @@ const addPlaylistBtn = document.getElementById('addplaylist');
 const addFolderPlaylistBtn = document.getElementById('addfolderplaylist');
 const searchRightBtn = document.getElementById('srchp');
 const searchRightInput = document.getElementById('srccp');
-const leftPanel = document.querySelector('.left');
-const rightPanel = document.querySelector('.right');
+const leftPanel = document.querySelector('.main > .left');
+const rightPanel = document.querySelector('.main > .right');
 
 const fileBtn = document.getElementById('file');
 const fileMenu = document.getElementById('files');
@@ -102,6 +102,8 @@ const recentBtn = fileRows[1];
 const exitBtn = fileRows[2];
 
 const metaCache = {};
+
+let internalDragPath = null;
 
 const previewVideo = document.createElement('video');
 previewVideo.preload = 'metadata';
@@ -1584,8 +1586,13 @@ function buildFileNode(node) {
     row.draggable = true;
 
     row.addEventListener('dragstart', (event) => {
+        internalDragPath = node.path;
         event.dataTransfer.setData('text/parnasocial-node', node.path);
         event.dataTransfer.effectAllowed = 'copy';
+    });
+
+    row.addEventListener('dragend', () => {
+        internalDragPath = null;
     });
 
     container.appendChild(row);
@@ -1645,8 +1652,13 @@ function buildDirectoryNode(node, depth) {
     row.draggable = true;
 
     row.addEventListener('dragstart', (event) => {
+        internalDragPath = node.path;
         event.dataTransfer.setData('text/parnasocial-node', node.path);
         event.dataTransfer.effectAllowed = 'copy';
+    });
+
+    row.addEventListener('dragend', () => {
+        internalDragPath = null;
     });
 
     container.appendChild(row);
@@ -1876,7 +1888,13 @@ function setupDropZone(element, handler) {
         event.preventDefault();
         element.classList.remove('dragover');
 
-        const nodePath = event.dataTransfer.getData('text/parnasocial-node');
+        let nodePath = internalDragPath;
+
+        if (!nodePath) {
+            nodePath = event.dataTransfer.getData('text/parnasocial-node');
+        }
+
+        internalDragPath = null;
 
         if (nodePath && Array.isArray(state.directoryTrees)) {
             let foundNode = null;
@@ -1936,6 +1954,14 @@ setupDropZone(leftPanel, (items) => {
 
 setupDropZone(rightPanel, (items) => {
     addToPlaylist(items);
+});
+
+document.addEventListener('dragover', (event) => {
+    event.preventDefault();
+});
+
+document.addEventListener('drop', (event) => {
+    event.preventDefault();
 });
 
 function bindSearchToggle(button, input, onChange) {
