@@ -6,7 +6,7 @@ let mainWindow = null;
 const APP_ID = 'xyz.vexikoff.parnasocial';
 const APP_NAME = 'Parnasocial';
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
-const INDEX_PATH = path.join(__dirname, 'public', 'fullscreen.html');
+const INDEX_PATH = path.join(__dirname, 'public', 'index.html');
 const ICON_PATH = path.join(__dirname, 'assets', 'Parnasocial.ico');
 const WINDOW_CONTROLS_HEIGHT = 36;
 
