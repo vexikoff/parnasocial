@@ -25,10 +25,12 @@ const ICON_FULLSCREEN_ACTIVE = '\uE92C';
 
 const HIDE_DELAY = 3000;
 const THEME_KEY = 'yaebalneironki';
+const VIDEO_EXTS = ['mp4', 'webm', 'mkv', 'mov', 'avi'];
 
 let savedVolume = 70;
 let hideTimer = null;
 let currentState = null;
+let isWindowFullScreen = false;
 
 let yaebalneironki = localStorage.getItem(THEME_KEY);
 
@@ -195,14 +197,39 @@ function updateTimeline() {
 }
 
 function updateFullscreenIcon() {
-    if (document.fullscreenElement) {
-        fullscreenButton.textContent = ICON_FULLSCREEN_ACTIVE;
-    } else {
-        fullscreenButton.textContent = ICON_FULLSCREEN;
-    }
+    fullscreenButton.textContent = isWindowFullScreen ? ICON_FULLSCREEN_ACTIVE : ICON_FULLSCREEN;
 }
 
-function toggleFullscreen() {
+async function toggleFullscreen() {
+    if (window.parnasocial && window.parnasocial.window && typeof window.parnasocial.window.setFullScreen === 'function') {
+        let current = isWindowFullScreen;
+
+        if (typeof window.parnasocial.window.isFullScreen === 'function') {
+            try {
+                current = (await window.parnasocial.window.isFullScreen()) === true;
+            } catch (error) {
+            }
+        }
+
+        const target = !current;
+
+        try {
+            let result = (await window.parnasocial.window.setFullScreen(target)) === true;
+
+            isWindowFullScreen = result;
+            updateFullscreenIcon();
+
+            if (result !== target) {
+                result = (await window.parnasocial.window.setFullScreen(target)) === true;
+                isWindowFullScreen = result;
+                updateFullscreenIcon();
+            }
+        } catch (error) {
+        }
+
+        return;
+    }
+
     if (document.fullscreenElement) {
         document.exitFullscreen().catch(() => {
         });
@@ -330,7 +357,58 @@ function backToAudio() {
     } catch (error) {
     }
 
+    if (isWindowFullScreen && window.parnasocial && window.parnasocial.window && typeof window.parnasocial.window.setFullScreen === 'function') {
+        window.parnasocial.window.setFullScreen(false);
+    }
+
     window.location.href = 'index.html';
+}
+
+function openExternalFile(filePath) {
+    if (typeof filePath !== 'string' || filePath === '') {
+        return;
+    }
+
+    const dot = filePath.lastIndexOf('.');
+    const ext = dot === -1 ? '' : filePath.slice(dot + 1).toLowerCase();
+
+    if (!VIDEO_EXTS.includes(ext)) {
+        return;
+    }
+
+    if (!currentState) {
+        currentState = {
+            playlist: [],
+            currentIndex: -1,
+            repeat: 'none',
+            shuffle: false
+        };
+    }
+
+    if (!Array.isArray(currentState.playlist)) {
+        currentState.playlist = [];
+    }
+
+    let idx = currentState.playlist.findIndex((t) => t.path === filePath);
+
+    if (idx === -1) {
+        currentState.playlist.push({
+            name: filePath.split(/[\\/]/).pop() || filePath,
+            path: filePath,
+            type: 'video'
+        });
+        idx = currentState.playlist.length - 1;
+    }
+
+    currentState.currentIndex = idx;
+    currentState.currentTime = 0;
+
+    video.src = filePath;
+    video.load();
+    video.play().catch(() => {
+    });
+
+    resetHideTimer();
 }
 
 video.addEventListener('play', () => {
@@ -463,8 +541,6 @@ timeCont.addEventListener('click', (event) => {
     resetHideTimer();
 });
 
-document.addEventListener('fullscreenchange', updateFullscreenIcon);
-
 document.addEventListener('mousemove', resetHideTimer);
 
 document.addEventListener('keydown', (event) => {
@@ -539,6 +615,17 @@ document.addEventListener('keydown', (event) => {
         return;
     }
 });
+
+if (window.parnasocial && window.parnasocial.window && typeof window.parnasocial.window.onFullScreenState === 'function') {
+    window.parnasocial.window.onFullScreenState((value) => {
+        isWindowFullScreen = value === true;
+        updateFullscreenIcon();
+    });
+}
+
+if (window.parnasocial && window.parnasocial.app && typeof window.parnasocial.app.onOpenFile === 'function') {
+    window.parnasocial.app.onOpenFile(openExternalFile);
+}
 
 currentState = loadState();
 

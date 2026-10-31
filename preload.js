@@ -22,14 +22,19 @@ function subscribe(channel, callback) {
 
 const api = {
     app: {
-        getInfo: () => invoke('parnasocial:app:getInfo')
+        getInfo: () => invoke('parnasocial:app:getInfo'),
+        getPendingFile: () => invoke('parnasocial:app:getPendingFile'),
+        onOpenFile: (callback) => subscribe('parnasocial:file:open', callback)
     },
     window: {
         minimize: () => invoke('parnasocial:window:minimize'),
         toggleMaximize: () => invoke('parnasocial:window:toggleMaximize'),
         close: () => invoke('parnasocial:window:close'),
         isMaximized: () => invoke('parnasocial:window:isMaximized'),
-        onMaximized: (callback) => subscribe('parnasocial:window:maximized', callback)
+        onMaximized: (callback) => subscribe('parnasocial:window:maximized', callback),
+        setFullScreen: (value) => invoke('parnasocial:window:setFullScreen', value),
+        isFullScreen: () => invoke('parnasocial:window:isFullScreen'),
+        onFullScreenState: (callback) => subscribe('parnasocial:window:fullscreenstate', callback)
     },
     folder: {
         open: () => invoke('parnasocial:folder:open'),

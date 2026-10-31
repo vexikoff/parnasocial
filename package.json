@@ -65,6 +65,92 @@
     "extraMetadata": {
       "main": "main.js"
     },
+    "fileAssociations": [
+      {
+        "ext": "mp4",
+        "name": "Parnasocial Video",
+        "description": "Parnasocial video file",
+        "role": "Viewer",
+        "mimeType": "video/mp4"
+      },
+      {
+        "ext": "mkv",
+        "name": "Parnasocial Video",
+        "description": "Parnasocial video file",
+        "role": "Viewer",
+        "mimeType": "video/x-matroska"
+      },
+      {
+        "ext": "webm",
+        "name": "Parnasocial Video",
+        "description": "Parnasocial video file",
+        "role": "Viewer",
+        "mimeType": "video/webm"
+      },
+      {
+        "ext": "mov",
+        "name": "Parnasocial Video",
+        "description": "Parnasocial video file",
+        "role": "Viewer",
+        "mimeType": "video/quicktime"
+      },
+      {
+        "ext": "avi",
+        "name": "Parnasocial Video",
+        "description": "Parnasocial video file",
+        "role": "Viewer",
+        "mimeType": "video/x-msvideo"
+      },
+      {
+        "ext": "mp3",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/mpeg"
+      },
+      {
+        "ext": "wav",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/wav"
+      },
+      {
+        "ext": "ogg",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/ogg"
+      },
+      {
+        "ext": "flac",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/flac"
+      },
+      {
+        "ext": "m4a",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/mp4"
+      },
+      {
+        "ext": "aac",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/aac"
+      },
+      {
+        "ext": "wma",
+        "name": "Parnasocial Audio",
+        "description": "Parnasocial audio file",
+        "role": "Viewer",
+        "mimeType": "audio/x-ms-wma"
+      }
+    ],
     "win": {
       "icon": "assets/Parnasocial.ico",
       "target": [
@@ -96,7 +182,11 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Parnasocial",
       "runAfterFinish": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "en_US",
+        "ru_RU"
+      ]
     },
     "portable": {
       "artifactName": "${productName}-portable-${version}.${ext}"

@@ -7,6 +7,7 @@ let fullscreenWindow = null;
 let tray = null;
 let keepInTray = false;
 let forceQuit = false;
+let pendingMediaFile = null;
 
 const APP_ID = 'xyz.vexikoff.parnasocial';
 const APP_NAME = 'Parnasocial';
@@ -18,6 +19,7 @@ const WINDOW_CONTROLS_HEIGHT = 36;
 
 const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac', '.wma'];
 const VIDEO_EXTS = ['.mp4', '.webm', '.mkv', '.mov', '.avi'];
+const ALL_MEDIA_EXTS = AUDIO_EXTS.concat(VIDEO_EXTS);
 
 const ALLOWED_PERMISSIONS = new Set([
     'clipboard-read',
@@ -64,12 +66,50 @@ function getTrustedWindow(event) {
     return sender;
 }
 
+function extractMediaArg(argv) {
+    if (!Array.isArray(argv)) {
+        return null;
+    }
+
+    for (const arg of argv) {
+        if (typeof arg !== 'string' || arg === '') {
+            continue;
+        }
+
+        if (arg.startsWith('-')) {
+            continue;
+        }
+
+        const ext = path.extname(arg).toLowerCase();
+
+        if (ALL_MEDIA_EXTS.includes(ext) && fs.existsSync(arg)) {
+            return path.resolve(arg);
+        }
+    }
+
+    return null;
+}
+
+function sendOpenFile(target, filePath) {
+    if (target && !target.isDestroyed()) {
+        target.webContents.send('parnasocial:file:open', filePath);
+    }
+}
+
 function sendMaximizedState(window) {
     if (!window || window.isDestroyed()) {
         return;
     }
 
     window.webContents.send('parnasocial:window:maximized', window.isMaximized());
+}
+
+function sendFullScreenState(window) {
+    if (!window || window.isDestroyed()) {
+        return;
+    }
+
+    window.webContents.send('parnasocial:window:fullscreenstate', window.isFullScreen());
 }
 
 function getMediaType(filePath) {
@@ -311,6 +351,44 @@ function destroyTray() {
     tray = null;
 }
 
+function bindWindowEvents(window) {
+    window.once('ready-to-show', () => {
+        window.show();
+        sendMaximizedState(window);
+        sendFullScreenState(window);
+    });
+
+    window.on('maximize', () => {
+        sendMaximizedState(window);
+    });
+
+    window.on('unmaximize', () => {
+        sendMaximizedState(window);
+    });
+
+    window.on('enter-full-screen', () => {
+        sendFullScreenState(window);
+    });
+
+    window.on('leave-full-screen', () => {
+        sendFullScreenState(window);
+    });
+
+    window.webContents.setWindowOpenHandler(() => {
+        return { action: 'deny' };
+    });
+
+    window.webContents.on('will-navigate', (event, url) => {
+        if (!isAllowedRendererUrl(url)) {
+            event.preventDefault();
+        }
+    });
+
+    window.webContents.on('will-attach-webview', (event) => {
+        event.preventDefault();
+    });
+}
+
 function createFullscreenWindow() {
     if (fullscreenWindow && !fullscreenWindow.isDestroyed()) {
         fullscreenWindow.focus();
@@ -348,31 +426,10 @@ function createFullscreenWindow() {
 
     fullscreenWindow.setMenu(null);
 
-    fullscreenWindow.once('ready-to-show', () => {
-        fullscreenWindow.show();
-        sendMaximizedState(fullscreenWindow);
-    });
-
-    fullscreenWindow.on('maximize', () => {
-        sendMaximizedState(fullscreenWindow);
-    });
-
-    fullscreenWindow.on('unmaximize', () => {
-        sendMaximizedState(fullscreenWindow);
-    });
+    bindWindowEvents(fullscreenWindow);
 
     fullscreenWindow.on('closed', () => {
         fullscreenWindow = null;
-    });
-
-    fullscreenWindow.webContents.setWindowOpenHandler(() => {
-        return { action: 'deny' };
-    });
-
-    fullscreenWindow.webContents.on('will-navigate', (event, url) => {
-        if (!isAllowedRendererUrl(url)) {
-            event.preventDefault();
-        }
     });
 
     fullscreenWindow.loadFile(FULLSCREEN_PATH).catch(() => {
@@ -401,6 +458,19 @@ function registerIpc() {
             nodeVersion: process.versions.node,
             windowControlsHeight: WINDOW_CONTROLS_HEIGHT
         };
+    });
+
+    ipcMain.handle('parnasocial:app:getPendingFile', (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return null;
+        }
+
+        const filePath = pendingMediaFile;
+        pendingMediaFile = null;
+
+        return filePath;
     });
 
     ipcMain.handle('parnasocial:window:minimize', (event) => {
@@ -447,6 +517,57 @@ function registerIpc() {
         }
 
         return window.isMaximized();
+    });
+
+    ipcMain.handle('parnasocial:window:setFullScreen', (event, value) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return false;
+        }
+
+        const target = value === true;
+
+        if (window.isFullScreen() === target) {
+            return target;
+        }
+
+        return new Promise((resolve) => {
+            const finish = () => {
+                window.removeListener('enter-full-screen', onEnter);
+                window.removeListener('leave-full-screen', onLeave);
+                clearTimeout(timer);
+                resolve(window.isFullScreen());
+            };
+
+            const onEnter = () => {
+                if (target) {
+                    finish();
+                }
+            };
+
+            const onLeave = () => {
+                if (!target) {
+                    finish();
+                }
+            };
+
+            const timer = setTimeout(finish, 2000);
+
+            window.on('enter-full-screen', onEnter);
+            window.on('leave-full-screen', onLeave);
+            window.setFullScreen(target);
+        });
+    });
+
+    ipcMain.handle('parnasocial:window:isFullScreen', (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return false;
+        }
+
+        return window.isFullScreen();
     });
 
     ipcMain.handle('parnasocial:folder:open', async (event) => {
@@ -602,7 +723,7 @@ function createWindow() {
         width: 1280,
         height: 800,
         minWidth: 800,
-        minHeight: 600,
+        minHeight: 700,
         show: false,
         title: APP_NAME,
         icon: ICON_PATH,
@@ -629,18 +750,7 @@ function createWindow() {
 
     mainWindow.setMenu(null);
 
-    mainWindow.once('ready-to-show', () => {
-        mainWindow.show();
-        sendMaximizedState(mainWindow);
-    });
-
-    mainWindow.on('maximize', () => {
-        sendMaximizedState(mainWindow);
-    });
-
-    mainWindow.on('unmaximize', () => {
-        sendMaximizedState(mainWindow);
-    });
+    bindWindowEvents(mainWindow);
 
     mainWindow.on('close', (event) => {
         if (keepInTray && !forceQuit) {
@@ -653,26 +763,14 @@ function createWindow() {
         mainWindow = null;
     });
 
-    mainWindow.webContents.setWindowOpenHandler(() => {
-        return { action: 'deny' };
-    });
-
-    mainWindow.webContents.on('will-navigate', (event, url) => {
-        if (!isAllowedRendererUrl(url)) {
-            event.preventDefault();
-        }
-    });
-
-    mainWindow.webContents.on('will-attach-webview', (event) => {
-        event.preventDefault();
-    });
-
     mainWindow.loadFile(INDEX_PATH).catch(() => {
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.close();
         }
     });
 }
+
+pendingMediaFile = extractMediaArg(process.argv);
 
 if (process.platform !== 'win32') {
     app.quit();
@@ -686,7 +784,14 @@ if (process.platform !== 'win32') {
     if (!gotTheLock) {
         app.quit();
     } else {
-        app.on('second-instance', () => {
+        app.on('second-instance', (event, argv) => {
+            const filePath = extractMediaArg(argv);
+
+            if (filePath) {
+                sendOpenFile(mainWindow, filePath);
+                sendOpenFile(fullscreenWindow, filePath);
+            }
+
             if (mainWindow && !mainWindow.isDestroyed()) {
                 if (mainWindow.isMinimized()) {
                     mainWindow.restore();

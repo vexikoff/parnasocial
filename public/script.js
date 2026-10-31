@@ -20,7 +20,7 @@ const STORAGE_KEY = 'parnasocial:state';
 const THEME_KEY = 'yaebalneironki';
 const AUDIO_EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma'];
 const VIDEO_EXTS = ['mp4', 'webm', 'mkv', 'mov', 'avi'];
-const CROSSFADE_MS = 2500;
+const CROSSFADE_MS = 500;
 const PREVIEW_MAX = 512;
 
 const ICON_PLAY = '\uE768';
@@ -49,7 +49,7 @@ function createPlayer() {
 let audio = createPlayer();
 let audioAlt = null;
 let fadeRaf = null;
-let crossfadeScheduled = false;
+let fadeAbort = null;
 
 const settings = document.querySelector('.settings');
 const themeSwitch = document.querySelector('.switch input[type="checkbox"]');
@@ -147,6 +147,8 @@ function aplittheme() {
     if (themeSwitch) {
         themeSwitch.checked = yaebalneironki === '1';
     }
+
+    refreshUnknownCover();
 }
 
 function saveth(theme) {
@@ -170,6 +172,26 @@ function aplitheme() {
 
 function getth() {
     return yaebalneironki;
+}
+
+function unknownCover() {
+    return yaebalneironki === '1' ? '../assets/unknowndark.png' : '../assets/unknown.png';
+}
+
+function refreshUnknownCover() {
+    const track = state.playlist[state.currentIndex];
+
+    if (!track || !playerImg) {
+        return;
+    }
+
+    const stored = metaCache[track.path];
+
+    if (stored && stored.picture) {
+        return;
+    }
+
+    playerImg.src = unknownCover();
 }
 
 function openset() {
@@ -745,7 +767,7 @@ function applyMeta(index, stored) {
     }
 
     if (playerImg) {
-        playerImg.src = stored.picture ? stored.picture : '../assets/unknown.png';
+        playerImg.src = stored.picture ? stored.picture : unknownCover();
     }
 }
 
@@ -820,7 +842,7 @@ function updateTrackInfo() {
         if (stored && stored.picture) {
             playerImg.src = stored.picture;
         } else {
-            playerImg.src = '../assets/unknown.png';
+            playerImg.src = unknownCover();
         }
     }
 }
@@ -887,6 +909,117 @@ function updateTimeline() {
     }
 }
 
+function attachPlayer(player) {
+    player.addEventListener('play', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        state.isPlaying = true;
+        updatePlayButton();
+
+        if (previewActive()) {
+            previewVideo.play().catch(() => {
+            });
+        }
+    });
+
+    player.addEventListener('pause', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        state.isPlaying = false;
+        updatePlayButton();
+        previewVideo.pause();
+    });
+
+    player.addEventListener('ended', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        state.isPlaying = false;
+        updatePlayButton();
+
+        playNext();
+    });
+
+    player.addEventListener('timeupdate', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        updateTimeline();
+
+        const track = state.playlist[state.currentIndex];
+
+        if (track && Number.isFinite(audio.duration) && audio.duration > 0 && track.duration !== audio.duration) {
+            track.duration = audio.duration;
+            saveState();
+            renderPlaylist();
+        }
+
+        if (previewActive() && Math.abs(previewVideo.currentTime - audio.currentTime) > 0.5) {
+            previewVideo.currentTime = audio.currentTime;
+        }
+
+        if (isCrossfadeOn() && fadeRaf === null && !audio.paused && Number.isFinite(audio.duration) && audio.duration > CROSSFADE_MS / 1000 && (audio.duration - audio.currentTime) <= CROSSFADE_MS / 1000) {
+            const next = getNextIndex();
+
+            if (next !== -1 && next !== state.currentIndex) {
+                state.currentIndex = next;
+
+                const nextTrack = state.playlist[next];
+
+                startCrossfade(getAltPlayer(), nextTrack);
+                updateTrackInfo();
+                loadMetadata(next);
+                syncPreviewSource();
+
+                if (state.shuffle) {
+                    const shuffleIdx = state.shuffleOrder.indexOf(next);
+
+                    if (shuffleIdx !== -1) {
+                        state.shuffleIndex = shuffleIdx;
+                    }
+                }
+
+                saveState();
+                renderPlaylist();
+            }
+        }
+    });
+
+    player.addEventListener('loadedmetadata', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        updateTimeline();
+    });
+
+    player.addEventListener('durationchange', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        updateTimeline();
+    });
+
+    player.addEventListener('seeked', () => {
+        if (player !== audio) {
+            return;
+        }
+
+        updateTimeline();
+
+        if (previewActive()) {
+            previewVideo.currentTime = audio.currentTime;
+        }
+    });
+}
+
 function getAltPlayer() {
     if (!audioAlt) {
         audioAlt = createPlayer();
@@ -898,41 +1031,116 @@ function getAltPlayer() {
 
 function startCrossfade(incoming, track) {
     const from = audio;
+    const base = state.volume / 100;
 
-    incoming.src = track.path;
-    incoming.load();
+    if (fadeAbort) {
+        fadeAbort();
+        fadeAbort = null;
+    }
+
+    if (fadeRaf) {
+        cancelAnimationFrame(fadeRaf);
+        fadeRaf = null;
+    }
+
     incoming.volume = 0;
-    incoming.play().catch(() => {
-    });
+    incoming.src = track.path;
 
     audio = incoming;
     audioAlt = from;
 
-    const base = state.volume / 100;
-    const start = performance.now();
+    let settled = false;
 
-    if (fadeRaf) {
-        cancelAnimationFrame(fadeRaf);
-    }
-
-    const step = (now) => {
-        const t = Math.min(1, (now - start) / CROSSFADE_MS);
-
-        audio.volume = base * t;
-        from.volume = base * (1 - t);
-
-        if (t < 1) {
-            fadeRaf = requestAnimationFrame(step);
-        } else {
-            from.pause();
-            fadeRaf = null;
-        }
+    const cleanup = () => {
+        incoming.removeEventListener('playing', onPlaying);
+        incoming.removeEventListener('error', onError);
+        clearTimeout(guard);
+        fadeAbort = null;
     };
 
-    fadeRaf = requestAnimationFrame(step);
+    const hardFallback = () => {
+        if (settled) {
+            return;
+        }
+
+        settled = true;
+        cleanup();
+
+        if (fadeRaf) {
+            cancelAnimationFrame(fadeRaf);
+            fadeRaf = null;
+        }
+
+        incoming.pause();
+        incoming.removeAttribute('src');
+        incoming.load();
+
+        audio = from;
+        audioAlt = incoming;
+
+        from.volume = base;
+        from.src = track.path;
+        from.load();
+        from.play().catch(() => {
+        });
+    };
+
+    const beginFade = () => {
+        if (settled) {
+            return;
+        }
+
+        settled = true;
+        cleanup();
+
+        const start = performance.now();
+
+        const step = (now) => {
+            const t = Math.min(1, (now - start) / CROSSFADE_MS);
+
+            incoming.volume = base * t;
+            from.volume = base * (1 - t);
+
+            if (t < 1) {
+                fadeRaf = requestAnimationFrame(step);
+            } else {
+                from.pause();
+                from.removeAttribute('src');
+                from.load();
+                from.volume = base;
+                fadeRaf = null;
+            }
+        };
+
+        fadeRaf = requestAnimationFrame(step);
+    };
+
+    const onPlaying = () => {
+        beginFade();
+    };
+
+    const onError = () => {
+        hardFallback();
+    };
+
+    const guard = setTimeout(hardFallback, 4000);
+
+    fadeAbort = cleanup;
+
+    incoming.addEventListener('playing', onPlaying);
+    incoming.addEventListener('error', onError);
+
+    incoming.play().catch(() => {
+        hardFallback();
+    });
 }
 
 function stopCrossfade() {
+    if (fadeAbort) {
+        fadeAbort();
+        fadeAbort = null;
+    }
+
     if (fadeRaf) {
         cancelAnimationFrame(fadeRaf);
         fadeRaf = null;
@@ -940,9 +1148,10 @@ function stopCrossfade() {
 
     if (audioAlt) {
         audioAlt.pause();
+        audioAlt.removeAttribute('src');
+        audioAlt.load();
+        audioAlt.volume = state.volume / 100;
     }
-
-    crossfadeScheduled = false;
 }
 
 function loadTrack(index, autoPlay) {
@@ -953,9 +1162,7 @@ function loadTrack(index, autoPlay) {
     state.currentIndex = index;
     const track = state.playlist[index];
 
-    crossfadeScheduled = false;
-
-    const useCrossfade = autoPlay && isCrossfadeOn() && !audio.paused && !!audio.src;
+    const useCrossfade = autoPlay && isCrossfadeOn() && fadeRaf === null && !audio.paused && !!audio.src;
 
     if (useCrossfade) {
         startCrossfade(getAltPlayer(), track);
@@ -1751,123 +1958,6 @@ function bindSearchToggle(button, input, onChange) {
     });
 }
 
-function attachPlayer(player) {
-    player.addEventListener('play', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        state.isPlaying = true;
-        updatePlayButton();
-
-        if (previewActive()) {
-            previewVideo.play().catch(() => {
-            });
-        }
-    });
-
-    player.addEventListener('pause', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        state.isPlaying = false;
-        updatePlayButton();
-        previewVideo.pause();
-    });
-
-    player.addEventListener('ended', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        state.isPlaying = false;
-        updatePlayButton();
-
-        if (crossfadeScheduled) {
-            crossfadeScheduled = false;
-            return;
-        }
-
-        playNext();
-    });
-
-    player.addEventListener('timeupdate', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        updateTimeline();
-
-        const track = state.playlist[state.currentIndex];
-
-        if (track && Number.isFinite(audio.duration) && audio.duration > 0 && track.duration !== audio.duration) {
-            track.duration = audio.duration;
-            saveState();
-            renderPlaylist();
-        }
-
-        if (previewActive() && Math.abs(previewVideo.currentTime - audio.currentTime) > 0.5) {
-            previewVideo.currentTime = audio.currentTime;
-        }
-
-        if (isCrossfadeOn() && !crossfadeScheduled && !audio.paused && Number.isFinite(audio.duration) && audio.duration > CROSSFADE_MS / 1000 && (audio.duration - audio.currentTime) <= CROSSFADE_MS / 1000) {
-            const next = getNextIndex();
-
-            if (next !== -1 && next !== state.currentIndex) {
-                crossfadeScheduled = true;
-                state.currentIndex = next;
-
-                const nextTrack = state.playlist[next];
-
-                startCrossfade(getAltPlayer(), nextTrack);
-                updateTrackInfo();
-                loadMetadata(next);
-                syncPreviewSource();
-
-                if (state.shuffle) {
-                    const shuffleIdx = state.shuffleOrder.indexOf(next);
-
-                    if (shuffleIdx !== -1) {
-                        state.shuffleIndex = shuffleIdx;
-                    }
-                }
-
-                saveState();
-                renderPlaylist();
-            }
-        }
-    });
-
-    player.addEventListener('loadedmetadata', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        updateTimeline();
-    });
-
-    player.addEventListener('durationchange', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        updateTimeline();
-    });
-
-    player.addEventListener('seeked', () => {
-        if (player !== audio) {
-            return;
-        }
-
-        updateTimeline();
-
-        if (previewActive()) {
-            previewVideo.currentTime = audio.currentTime;
-        }
-    });
-}
-
 attachPlayer(audio);
 
 previewVideo.addEventListener('loadedmetadata', () => {
@@ -2080,6 +2170,82 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+function handleExternalFile(filePath) {
+    if (typeof filePath !== 'string' || filePath === '') {
+        return;
+    }
+
+    const type = getMediaType(filePath);
+    const name = filePath.split(/[\\/]/).pop() || filePath;
+
+    if (type === 'video') {
+        let idx = state.playlist.findIndex((t) => t.path === filePath);
+
+        if (idx === -1) {
+            state.playlist.push({
+                id: generateId(),
+                name,
+                path: filePath,
+                type
+            });
+            idx = state.playlist.length - 1;
+        }
+
+        state.currentIndex = idx;
+
+        const fullState = {
+            src: filePath,
+            currentTime: 0,
+            isPlaying: true,
+            volume: state.volume,
+            name: stripExt(name),
+            type,
+            currentIndex: idx,
+            playlist: state.playlist,
+            repeat: state.repeat,
+            shuffle: state.shuffle
+        };
+
+        try {
+            localStorage.setItem('parnasocial:fullscreen:state', JSON.stringify(fullState));
+        } catch (error) {
+        }
+
+        window.location.href = 'fullscreen.html';
+        return;
+    }
+
+    if (type === 'audio') {
+        let idx = state.playlist.findIndex((t) => t.path === filePath);
+
+        if (idx === -1) {
+            addPathsToPlaylist([filePath]);
+            idx = state.playlist.length - 1;
+        }
+
+        loadTrack(idx, true);
+    }
+}
+
+async function pullPendingFile() {
+    if (!window.parnasocial || !window.parnasocial.app || typeof window.parnasocial.app.getPendingFile !== 'function') {
+        return;
+    }
+
+    try {
+        const filePath = await window.parnasocial.app.getPendingFile();
+
+        if (filePath) {
+            handleExternalFile(filePath);
+        }
+    } catch (error) {
+    }
+}
+
+if (window.parnasocial && window.parnasocial.app && typeof window.parnasocial.app.onOpenFile === 'function') {
+    window.parnasocial.app.onOpenFile(handleExternalFile);
+}
+
 loadState();
 applyVolume();
 updateRepeatButtons();
@@ -2091,6 +2257,8 @@ updatePreviewDisplay();
 if (state.currentIndex >= 0 && state.playlist.length > 0) {
     loadTrack(state.currentIndex, false);
 }
+
+pullPendingFile();
 
 (function handleReturnFromFullscreen() {
     try {

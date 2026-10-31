@@ -316,6 +316,7 @@ body {
 .main .left .directory {
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 .main .left .directory .folder {
   display: flex;
@@ -514,6 +515,7 @@ body {
   height: 100%;
   min-width: 156px;
   border-radius: 8px;
+  overflow: auto;
 }
 .main .right .top {
   display: flex;

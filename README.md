@@ -59,6 +59,8 @@ Most media controls are placeholders until playback logic is added.
             fullscreen.css
             fullscreen.css.map
             fullscreen.scss
+            unknown.png
+            unknowndark.png
         electron/
         public/
             index.html
