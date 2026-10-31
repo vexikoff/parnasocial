@@ -117,5 +117,21 @@ document.addEventListener('DOMContentLoaded', function() {
     top2p.addEventListener('mouseleave', function() {
         srccep.classList.add('skr');
     })
-
 });
+
+const file111 = document.getElementById('file');
+const filess = document.getElementById('files');
+const recentt = document.querySelector('.recentt');
+const recentBtn = filess ? filess.querySelector('.file.row:nth-of-type(2)') : null;
+
+if (file111 && filess) {
+    file111.addEventListener('mouseenter', () => {
+        filess.classList.remove('hidden');
+    });
+}
+
+if (recentBtn && recentt) {
+    recentBtn.addEventListener('mouseenter', () => {
+        recentt.classList.remove('hidden');
+    });
+}
