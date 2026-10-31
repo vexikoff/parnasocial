@@ -1,7 +1,7 @@
 {
   "name": "parnasocial",
   "productName": "Parnasocial",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "type": "commonjs",
   "main": "main.js",

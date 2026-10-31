@@ -6,7 +6,9 @@ const settingsDefaults = {
     keepInTray: true,
     crossfade: false,
     videoPreview: false,
-    autoRatio: false
+    autoRatio: false,
+    vizualizator: false,
+    bassBoost: false
 };
 
 let settingsStore = Object.assign({}, settingsDefaults);
@@ -57,6 +59,8 @@ const traySwitch = saveTraySwitches[1];
 const crossfadeSwitch = document.querySelector('.switchcc input[type="checkbox"]');
 const previewSwitch = document.querySelector('.switchsssss input[type="checkbox"]');
 const ratioSwitch = document.querySelector('.switchssssss input[type="checkbox"]');
+const vizSwitch = document.querySelector('.switchccccc input[type="checkbox"]');
+const bassSwitch = document.querySelector('.bassc input[type="checkbox"]');
 
 function syncRatioDisabled() {
     if (ratioSwitch) {
@@ -86,6 +90,14 @@ if (previewSwitch) {
 
 if (ratioSwitch) {
     ratioSwitch.checked = settingsStore.autoRatio;
+}
+
+if (vizSwitch) {
+    vizSwitch.checked = settingsStore.vizualizator;
+}
+
+if (bassSwitch) {
+    bassSwitch.checked = settingsStore.bassBoost;
 }
 
 syncRatioDisabled();
@@ -139,6 +151,18 @@ if (previewSwitch) {
 if (ratioSwitch) {
     ratioSwitch.addEventListener('change', () => {
         window.pSettings.set('autoRatio', ratioSwitch.checked);
+    });
+}
+
+if (vizSwitch) {
+    vizSwitch.addEventListener('change', () => {
+        window.pSettings.set('vizualizator', vizSwitch.checked);
+    });
+}
+
+if (bassSwitch) {
+    bassSwitch.addEventListener('change', () => {
+        window.pSettings.set('bassBoost', bassSwitch.checked);
     });
 }
 

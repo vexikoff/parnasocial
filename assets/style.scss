@@ -211,7 +211,18 @@ body {
     left: -16px;
     right: -16px;
     z-index: -1;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(8px);
+}
+
+.recentt::before {
+    content: '';
+    position: absolute;
+    top: -16px;
+    bottom: -16px;
+    left: -16px;
+    right: -16px;
+    z-index: -1;
+    backdrop-filter: blur(8px);
 }
 
 .row {

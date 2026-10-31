@@ -24,6 +24,7 @@
     align-items: center;
     justify-content: center;
     padding: 0 8px;
+    background-color: rgba(0, 0, 0, 0.25);
     .timecont {
         position: absolute;
         bottom: 0;
@@ -134,7 +135,7 @@
         right: -24px;
         bottom: -24px;
         z-index: -1;
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(16px);
         background: transparent;
     }
 }

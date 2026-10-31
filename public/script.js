@@ -51,6 +51,15 @@ let audioAlt = null;
 let fadeRaf = null;
 let fadeAbort = null;
 
+let audioCtx = null;
+let analyser = null;
+let bassFilter = null;
+let masterGain = null;
+let sourceMap = new WeakMap();
+let viz = null;
+let graphReady = false;
+let gestureBound = false;
+
 const settings = document.querySelector('.settings');
 const themeSwitch = document.querySelector('.switch input[type="checkbox"]');
 
@@ -1024,6 +1033,10 @@ function getAltPlayer() {
     if (!audioAlt) {
         audioAlt = createPlayer();
         attachPlayer(audioAlt);
+
+        if (graphReady) {
+            wirePlayerSource(audioAlt);
+        }
     }
 
     return audioAlt;
@@ -1964,6 +1977,197 @@ previewVideo.addEventListener('loadedmetadata', () => {
     applyRatio();
 });
 
+function isVizOn() {
+    if (window.pSettings && typeof window.pSettings.get === 'function') {
+        return window.pSettings.get('vizualizator') === true;
+    }
+
+    return false;
+}
+
+function isBassOn() {
+    if (window.pSettings && typeof window.pSettings.get === 'function') {
+        return window.pSettings.get('bassBoost') === true;
+    }
+
+    return false;
+}
+
+function wirePlayerSource(player) {
+    if (!audioCtx || sourceMap.has(player)) {
+        return;
+    }
+
+    try {
+        const src = audioCtx.createMediaElementSource(player);
+        src.connect(bassFilter);
+        sourceMap.set(player, src);
+    } catch (error) {
+    }
+}
+
+function ensureAudioGraph() {
+    if (graphReady) {
+        return true;
+    }
+
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+
+        if (!Ctx) {
+            return false;
+        }
+
+        audioCtx = new Ctx();
+        bassFilter = audioCtx.createBiquadFilter();
+        bassFilter.type = 'lowshelf';
+        bassFilter.frequency.value = 150;
+        bassFilter.gain.value = 0;
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.75;
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 1;
+
+        bassFilter.connect(analyser);
+        analyser.connect(masterGain);
+        masterGain.connect(audioCtx.destination);
+
+        wirePlayerSource(audio);
+
+        if (audioAlt) {
+            wirePlayerSource(audioAlt);
+        }
+
+        graphReady = true;
+
+        return true;
+    } catch (error) {
+        graphReady = false;
+        return false;
+    }
+}
+
+function resumeAudio() {
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {
+        });
+    }
+}
+
+function applyBassState() {
+    if (!graphReady || !bassFilter) {
+        return;
+    }
+
+    bassFilter.gain.value = isBassOn() ? 14 : 0;
+}
+
+function buildVizTargets() {
+    const targets = [];
+
+    if (prewEl) {
+        targets.push({
+            el: prewEl,
+            lift: 0,
+            liftPeak: 0,
+            sway: 1,
+            swayPeak: 4,
+            rotMax: 3,
+            rotPeak: 5,
+            scaleMax: 0.001,
+            scalePeak: 0.007,
+            dir: 1
+        });
+    }
+
+    const helloRow = document.querySelector('.center > .row');
+
+    if (helloRow) {
+        targets.push({
+            el: helloRow,
+            lift: 1,
+            liftPeak: 2,
+            sway: 2,
+            swayPeak: 4,
+            rotMax: 2,
+            rotPeak: 4,
+            scaleMax: 0.004,
+            scalePeak: 0.01,
+            dir: -1
+        });
+    }
+
+    return targets;
+}
+
+function applyVizState() {
+    if (!isVizOn()) {
+        if (viz) {
+            viz.stop();
+        }
+
+        return;
+    }
+
+    if (!ensureAudioGraph()) {
+        return;
+    }
+
+    resumeAudio();
+    applyBassState();
+
+    if (typeof window.Vizualizator !== 'function') {
+        return;
+    }
+
+    if (!viz) {
+        viz = new window.Vizualizator(analyser, buildVizTargets(), function() {
+            return graphReady && !!audioCtx && audioCtx.state === 'running';
+        });
+    }
+
+    viz.start();
+}
+
+function bindFirstGesture() {
+    if (gestureBound) {
+        return;
+    }
+
+    gestureBound = true;
+
+    const onGesture = () => {
+        resumeAudio();
+
+        if (isVizOn() || isBassOn()) {
+            ensureAudioGraph();
+            applyBassState();
+            applyVizState();
+        }
+
+        window.removeEventListener('pointerdown', onGesture);
+        window.removeEventListener('keydown', onGesture);
+    };
+
+    window.addEventListener('pointerdown', onGesture);
+    window.addEventListener('keydown', onGesture);
+}
+
+window.addEventListener('parnasocial:settings', (event) => {
+    if (event.detail === 'vizualizator') {
+        applyVizState();
+    }
+
+    if (event.detail === 'bassBoost') {
+        if (isBassOn() || isVizOn()) {
+            ensureAudioGraph();
+        }
+
+        applyBassState();
+    }
+});
+
 if (playBtn) {
     playBtn.addEventListener('click', () => {
         togglePlay();
@@ -2043,8 +2247,13 @@ if (timeCont) {
 }
 
 if (openFolderBtn) {
-    openFolderBtn.addEventListener('click', () => {
-        openFolderAndAdd();
+    openFolderBtn.addEventListener('click', async () => {
+        const dirPath = await openFolderAndAdd();
+
+        if (dirPath) {
+            pushRecentFolder(dirPath);
+        }
+
         openFolderBtn.blur();
     });
 }
@@ -2269,6 +2478,13 @@ if (state.currentIndex >= 0 && state.playlist.length > 0) {
 }
 
 pullPendingFile();
+bindFirstGesture();
+
+if (isVizOn() || isBassOn()) {
+    ensureAudioGraph();
+    applyBassState();
+    applyVizState();
+}
 
 (function handleReturnFromFullscreen() {
     try {
