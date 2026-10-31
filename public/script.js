@@ -2007,7 +2007,12 @@ if (videoModeBtn) {
         } catch (error) {
         }
 
-        window.location.href = 'fullscreen.html';
+        if (window.parnasocial && typeof window.parnasocial.navigate === 'function') {
+            window.parnasocial.navigate('fullscreen');
+        } else {
+            window.location.href = 'fullscreen.html';
+        }
+
         videoModeBtn.blur();
     });
 }
@@ -2211,7 +2216,12 @@ function handleExternalFile(filePath) {
         } catch (error) {
         }
 
-        window.location.href = 'fullscreen.html';
+        if (window.parnasocial && typeof window.parnasocial.navigate === 'function') {
+            window.parnasocial.navigate('fullscreen');
+        } else {
+            window.location.href = 'fullscreen.html';
+        }
+
         return;
     }
 
@@ -2235,7 +2245,7 @@ async function pullPendingFile() {
     try {
         const filePath = await window.parnasocial.app.getPendingFile();
 
-        if (filePath) {
+        if (filePath && getMediaType(filePath) === 'audio') {
             handleExternalFile(filePath);
         }
     } catch (error) {

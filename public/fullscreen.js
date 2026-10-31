@@ -361,6 +361,11 @@ function backToAudio() {
         window.parnasocial.window.setFullScreen(false);
     }
 
+    if (window.parnasocial && typeof window.parnasocial.navigate === 'function') {
+        window.parnasocial.navigate('index');
+        return;
+    }
+
     window.location.href = 'index.html';
 }
 
@@ -627,20 +632,64 @@ if (window.parnasocial && window.parnasocial.app && typeof window.parnasocial.ap
     window.parnasocial.app.onOpenFile(openExternalFile);
 }
 
-currentState = loadState();
+(async function initFullscreen() {
+    let pending = null;
 
-if (currentState && currentState.src) {
-    video.src = currentState.src;
-    video.load();
-
-    if (typeof currentState.volume === 'number') {
-        volumeInput.value = String(currentState.volume);
-        savedVolume = currentState.volume > 0 ? currentState.volume : 70;
+    if (window.parnasocial && window.parnasocial.app && typeof window.parnasocial.app.getPendingFile === 'function') {
+        try {
+            pending = await window.parnasocial.app.getPendingFile();
+        } catch (error) {
+            pending = null;
+        }
     }
-}
 
-savedVolume = Number(volumeInput.value) > 0 ? Number(volumeInput.value) : 70;
-applyVolume();
-updateTimeline();
-updateFullscreenIcon();
-resetHideTimer();
+    if (pending && typeof pending === 'string' && pending !== '') {
+        const dot = pending.lastIndexOf('.');
+        const ext = dot === -1 ? '' : pending.slice(dot + 1).toLowerCase();
+
+        if (VIDEO_EXTS.includes(ext)) {
+            currentState = {
+                playlist: [{
+                    name: pending.split(/[\\/]/).pop() || pending,
+                    path: pending,
+                    type: 'video'
+                }],
+                currentIndex: 0,
+                repeat: 'none',
+                shuffle: false,
+                currentTime: 0,
+                isPlaying: true
+            };
+
+            video.src = pending;
+            video.load();
+            video.play().catch(() => {
+            });
+
+            savedVolume = Number(volumeInput.value) > 0 ? Number(volumeInput.value) : 70;
+            applyVolume();
+            updateTimeline();
+            updateFullscreenIcon();
+            resetHideTimer();
+            return;
+        }
+    }
+
+    currentState = loadState();
+
+    if (currentState && currentState.src) {
+        video.src = currentState.src;
+        video.load();
+
+        if (typeof currentState.volume === 'number') {
+            volumeInput.value = String(currentState.volume);
+            savedVolume = currentState.volume > 0 ? currentState.volume : 70;
+        }
+    }
+
+    savedVolume = Number(volumeInput.value) > 0 ? Number(volumeInput.value) : 70;
+    applyVolume();
+    updateTimeline();
+    updateFullscreenIcon();
+    resetHideTimer();
+})();

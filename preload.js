@@ -26,6 +26,7 @@ const api = {
         getPendingFile: () => invoke('parnasocial:app:getPendingFile'),
         onOpenFile: (callback) => subscribe('parnasocial:file:open', callback)
     },
+    navigate: (page) => invoke('parnasocial:navigate', page),
     window: {
         minimize: () => invoke('parnasocial:window:minimize'),
         toggleMaximize: () => invoke('parnasocial:window:toggleMaximize'),
@@ -64,6 +65,7 @@ Object.freeze(api);
 
 contextBridge.exposeInMainWorld('parnasocial', {
     changeth: (theme) => ipcRenderer.send('themechang', theme),
+    navigate: api.navigate,
     ...api,
     getWindowsUsername: () => {
         return ipcRenderer.invoke('system:get-windows-username');

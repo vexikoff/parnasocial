@@ -8,6 +8,7 @@ let tray = null;
 let keepInTray = false;
 let forceQuit = false;
 let pendingMediaFile = null;
+let startPage = 'index';
 
 const APP_ID = 'xyz.vexikoff.parnasocial';
 const APP_NAME = 'Parnasocial';
@@ -66,6 +67,20 @@ function getTrustedWindow(event) {
     return sender;
 }
 
+function getMediaType(filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+
+    if (AUDIO_EXTS.includes(ext)) {
+        return 'audio';
+    }
+
+    if (VIDEO_EXTS.includes(ext)) {
+        return 'video';
+    }
+
+    return 'file';
+}
+
 function extractMediaArg(argv) {
     if (!Array.isArray(argv)) {
         return null;
@@ -110,20 +125,6 @@ function sendFullScreenState(window) {
     }
 
     window.webContents.send('parnasocial:window:fullscreenstate', window.isFullScreen());
-}
-
-function getMediaType(filePath) {
-    const ext = path.extname(filePath).toLowerCase();
-
-    if (AUDIO_EXTS.includes(ext)) {
-        return 'audio';
-    }
-
-    if (VIDEO_EXTS.includes(ext)) {
-        return 'video';
-    }
-
-    return 'file';
 }
 
 function readDirectory(dirPath) {
@@ -473,6 +474,24 @@ function registerIpc() {
         return filePath;
     });
 
+    ipcMain.handle('parnasocial:navigate', (event, page) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return false;
+        }
+
+        if (page === 'fullscreen') {
+            window.loadFile(FULLSCREEN_PATH).catch(() => {
+            });
+            return true;
+        }
+
+        window.loadFile(INDEX_PATH).catch(() => {
+        });
+        return true;
+    });
+
     ipcMain.handle('parnasocial:window:minimize', (event) => {
         const window = getTrustedWindow(event);
 
@@ -718,21 +737,23 @@ ipcMain.handle('system:get-windows-username', () => {
     return getWindowsSystemUsername();
 });
 
-function createWindow() {
+function createWindow(page) {
+    const targetPath = page === 'fullscreen' ? FULLSCREEN_PATH : INDEX_PATH;
+
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
         minWidth: 800,
-        minHeight: 700,
+        minHeight: 600,
         show: false,
         title: APP_NAME,
         icon: ICON_PATH,
-        backgroundColor: '#ffffff',
+        backgroundColor: page === 'fullscreen' ? '#000000' : '#ffffff',
         thickFrame: true,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: '#ffffff',
-            symbolColor: '#101010',
+            color: page === 'fullscreen' ? '#101010' : '#ffffff',
+            symbolColor: page === 'fullscreen' ? '#FFFFFF' : '#101010',
             height: WINDOW_CONTROLS_HEIGHT
         },
         webPreferences: {
@@ -763,7 +784,7 @@ function createWindow() {
         mainWindow = null;
     });
 
-    mainWindow.loadFile(INDEX_PATH).catch(() => {
+    mainWindow.loadFile(targetPath).catch(() => {
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.close();
         }
@@ -771,6 +792,10 @@ function createWindow() {
 }
 
 pendingMediaFile = extractMediaArg(process.argv);
+
+if (pendingMediaFile && getMediaType(pendingMediaFile) === 'video') {
+    startPage = 'fullscreen';
+}
 
 if (process.platform !== 'win32') {
     app.quit();
@@ -788,8 +813,16 @@ if (process.platform !== 'win32') {
             const filePath = extractMediaArg(argv);
 
             if (filePath) {
-                sendOpenFile(mainWindow, filePath);
-                sendOpenFile(fullscreenWindow, filePath);
+                if (getMediaType(filePath) === 'video') {
+                    pendingMediaFile = filePath;
+
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        mainWindow.loadFile(FULLSCREEN_PATH).catch(() => {
+                        });
+                    }
+                } else {
+                    sendOpenFile(mainWindow, filePath);
+                }
             }
 
             if (mainWindow && !mainWindow.isDestroyed()) {
@@ -811,11 +844,11 @@ if (process.platform !== 'win32') {
             });
 
             registerIpc();
-            createWindow();
+            createWindow(startPage);
 
             app.on('activate', () => {
                 if (BrowserWindow.getAllWindows().length === 0) {
-                    createWindow();
+                    createWindow(startPage);
                 }
             });
         });
