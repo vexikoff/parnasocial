@@ -212,6 +212,66 @@ body {
             width: 100%;
             background-color: #E0E0E0;
         }
+        .directory {
+            display: flex;
+            flex-direction: column;
+            .folder {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                padding: 0px 8px;
+                margin-bottom: 8px;
+                box-sizing: border-box;
+                transition: all cubic-bezier(0, 0, 0, 1) 83ms;
+                border-radius: 4px;
+                align-items: center;
+                .spacer {
+                    margin-top: 4px;
+                    margin-bottom: 4px;
+                }
+                .row {
+                    width: 100%;
+                    height: 24px;
+                    align-items: center;
+                    justify-content: flex-start;
+                    .foldername {
+                        font-size: 14px;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
+                }
+                &:hover {
+                    background-color: rgb(245, 245, 245);
+                }
+            }
+            .file {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                padding: 0px 8px;
+                margin-bottom: 8px;
+                box-sizing: border-box;
+                transition: all cubic-bezier(0, 0, 0, 1) 83ms;
+                border-radius: 4px;
+                align-items: center;
+                .row {
+                    width: 100%;
+                    height: 24px;
+                    align-items: center;
+                    justify-content: flex-start;
+                    .foldername {
+                        font-size: 14px;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
+                }
+                &:hover {
+                    background-color: rgb(245, 245, 245);
+                }
+            }
+        }
     }
     .center {
         display: flex;
@@ -557,51 +617,64 @@ html[data-theme="1"] {
     body {
         background-color: #0C0C0C;
     }
+
     .grad {
-        background:
-                radial-gradient(circle at calc(0% + 64px) 0px, #062234 0%, transparent 20%),
-                radial-gradient(circle at calc(33% - 64px) 100%, #062234 0%, transparent 20%);
+        background: radial-gradient(circle at calc(0% + 64px) 0px, #062234 0%, transparent 20%),
+        radial-gradient(circle at calc(33% - 64px) 100%, #062234 0%, transparent 20%);
     }
+
     * {
         color: #FFFFFF !important;
     }
+
     .play {
         background-color: rgb(12 12 12 / 0.2) !important;
         color: #FFFFFF !important;
+
         &:hover {
             background-color: rgb(0 0 0 / 0.2) !important;
         }
     }
+
     .header {
         background: rgb(16 16 16 / 0.62) !important;
+
         .right .segoe {
             color: #FFFFFF;
             background-color: #101010 !important;
             font-weight: 550;
             transition: all cubic-bezier(0, 0, 0, 1) 83ms;
+
             &:hover {
                 background-color: #323232 !important;
             }
         }
     }
+
     .main {
         .left {
             background-color: rgb(16 16 16) !important;
+
             .search {
                 background-color: rgb(26, 26, 26) !important;
             }
+
             .top .button {
                 background-color: rgb(16, 16, 16) !important;
+
                 &:hover {
                     background-color: rgb(26, 26, 26) !important;
                 }
             }
+
             .spacer {
                 background-color: #303030 !important;
             }
         }
+
         .center {
             background-color: rgb(16 16 16) !important;;
+
             .player {
                 .volume::-webkit-slider-runnable-track {
                     background: #303030 !important;
@@ -620,27 +693,34 @@ html[data-theme="1"] {
                 }
             }
         }
+
         .right {
             background-color: rgb(16 16 16) !important;
+
             .top .button {
                 background-color: rgb(16 16 16) !important;
+
                 &:hover {
                     background-color: rgb(26 26 26) !important;
                 }
             }
+
             .spacer {
                 background-color: #303030 !important;
             }
+
             .playlist {
                 .folder:hover {
                     background-color: rgb(26 26 26);
                 }
+
                 .file:hover {
                     background-color: rgb(26 26 26);
                 }
             }
         }
     }
+
     .settings {
         background-color: rgb(16 16 16 / 1);
     }
