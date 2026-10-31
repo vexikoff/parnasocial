@@ -279,6 +279,7 @@ body {
   background-color: rgb(245, 245, 245);
   padding: 4px;
   border-radius: 4px;
+  z-index: 292;
 }
 .main .left .search:focus {
   outline: none;
@@ -509,7 +510,7 @@ body {
   box-sizing: border-box;
   background-color: rgb(255, 255, 255);
   height: 100%;
-  min-width: 184px;
+  min-width: 156px;
   border-radius: 8px;
 }
 .main .right .top {
@@ -534,6 +535,7 @@ body {
   background-color: rgb(245, 245, 245);
 }
 .main .right .search {
+  z-index: 292;
   position: absolute;
   display: flex;
   left: 8px;

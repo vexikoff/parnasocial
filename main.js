@@ -31,6 +31,11 @@ function stripHash(url) {
     return url.slice(0, hashIndex);
 }
 
+function isAllowedRendererUrl(url) {
+    const lower = stripHash(url).toLowerCase();
+    return lower.endsWith('/public/index.html') || lower.endsWith('/public/fullscreen.html');
+}
+
 function getTrustedWindow(event) {
     const sender = BrowserWindow.fromWebContents(event.sender);
 
@@ -109,6 +114,153 @@ function readDirectory(dirPath) {
     return entries;
 }
 
+function decodeId3Text(body) {
+    if (!body || body.length === 0) {
+        return '';
+    }
+
+    const encoding = body[0];
+    let raw = body.slice(1);
+    let text = '';
+
+    if (encoding === 1) {
+        if (raw.length >= 2 && raw[0] === 0xFE && raw[1] === 0xFF) {
+            const swapped = Buffer.alloc(raw.length);
+
+            for (let i = 0; i < raw.length; i++) {
+                swapped[i] = raw[i ^ 1];
+            }
+
+            text = swapped.slice(2).toString('utf16le');
+        } else {
+            text = raw.toString('utf16le');
+        }
+    } else if (encoding === 2) {
+        text = raw.toString('utf16le');
+    } else if (encoding === 3) {
+        text = raw.toString('utf8');
+    } else {
+        text = raw.toString('latin1');
+    }
+
+    return text.replace(/\uFEFF/g, '').replace(/\0+$/g, '').trim();
+}
+
+function parseApic(body) {
+    let pos = 0;
+    const encoding = body[pos];
+    pos++;
+
+    let mime = '';
+
+    while (pos < body.length && body[pos] !== 0) {
+        mime += String.fromCharCode(body[pos]);
+        pos++;
+    }
+
+    pos++;
+    pos++;
+
+    if (encoding === 1 || encoding === 2) {
+        while (pos + 1 < body.length && !(body[pos] === 0 && body[pos + 1] === 0)) {
+            pos += 2;
+        }
+
+        pos += 2;
+    } else {
+        while (pos < body.length && body[pos] !== 0) {
+            pos++;
+        }
+
+        pos++;
+    }
+
+    const data = body.slice(pos);
+
+    return {
+        mime: mime || 'image/jpeg',
+        base64: data.toString('base64')
+    };
+}
+
+function parseId3Tag(tag, version) {
+    const result = {
+        title: '',
+        artist: '',
+        pictureMime: '',
+        pictureBase64: ''
+    };
+
+    let pos = 0;
+
+    while (pos + 10 <= tag.length) {
+        const id = tag.toString('latin1', pos, pos + 4);
+
+        if (id === '\0\0\0\0') {
+            break;
+        }
+
+        let size;
+
+        if (version === 4) {
+            size = ((tag[pos + 4] & 0x7f) << 21) | ((tag[pos + 5] & 0x7f) << 14) | ((tag[pos + 6] & 0x7f) << 7) | (tag[pos + 7] & 0x7f);
+        } else {
+            size = tag.readUInt32BE(pos + 4);
+        }
+
+        const bodyStart = pos + 10;
+
+        if (size <= 0 || bodyStart + size > tag.length) {
+            break;
+        }
+
+        const body = tag.slice(bodyStart, bodyStart + size);
+
+        if (id === 'TIT2') {
+            result.title = decodeId3Text(body);
+        } else if (id === 'TPE1') {
+            result.artist = decodeId3Text(body);
+        } else if (id === 'APIC' && !result.pictureBase64) {
+            const pic = parseApic(body);
+            result.pictureMime = pic.mime;
+            result.pictureBase64 = pic.base64;
+        }
+
+        pos = bodyStart + size;
+    }
+
+    return result;
+}
+
+function readId3Metadata(filePath) {
+    try {
+        const fd = fs.openSync(filePath, 'r');
+        const header = Buffer.alloc(10);
+        const readCount = fs.readSync(fd, header, 0, 10, 0);
+
+        if (readCount < 10 || header.toString('latin1', 0, 3) !== 'ID3') {
+            fs.closeSync(fd);
+            return null;
+        }
+
+        const version = header[3];
+        const size = ((header[6] & 0x7f) << 21) | ((header[7] & 0x7f) << 14) | ((header[8] & 0x7f) << 7) | (header[9] & 0x7f);
+
+        if (size <= 0 || size > 32 * 1024 * 1024) {
+            fs.closeSync(fd);
+            return null;
+        }
+
+        const tag = Buffer.alloc(size);
+        fs.readSync(fd, tag, 0, size, 10);
+        fs.closeSync(fd);
+
+        return parseId3Tag(tag, version);
+    } catch (error) {
+        return null;
+    }
+}
+
 function createFullscreenWindow() {
     if (fullscreenWindow && !fullscreenWindow.isDestroyed()) {
         fullscreenWindow.focus();
@@ -168,10 +320,7 @@ function createFullscreenWindow() {
     });
 
     fullscreenWindow.webContents.on('will-navigate', (event, url) => {
-        const currentUrl = stripHash(fullscreenWindow.webContents.getURL());
-        const targetUrl = stripHash(url);
-
-        if (!currentUrl || currentUrl !== targetUrl) {
+        if (!isAllowedRendererUrl(url)) {
             event.preventDefault();
         }
     });
@@ -306,6 +455,20 @@ function registerIpc() {
         return result.filePaths;
     });
 
+    ipcMain.handle('parnasocial:media:metadata', (event, filePath) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return null;
+        }
+
+        if (typeof filePath !== 'string' || filePath === '') {
+            return null;
+        }
+
+        return readId3Metadata(filePath);
+    });
+
     ipcMain.on('parnasocial:fullscreen:open', (event) => {
         const window = getTrustedWindow(event);
 
@@ -393,10 +556,7 @@ function createWindow() {
     });
 
     mainWindow.webContents.on('will-navigate', (event, url) => {
-        const currentUrl = stripHash(mainWindow.webContents.getURL());
-        const targetUrl = stripHash(url);
-
-        if (!currentUrl || currentUrl !== targetUrl) {
+        if (!isAllowedRendererUrl(url)) {
             event.preventDefault();
         }
     });

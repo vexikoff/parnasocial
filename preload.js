@@ -36,6 +36,9 @@ const api = {
         read: (dirPath) => invoke('parnasocial:folder:read', dirPath),
         openFiles: () => invoke('parnasocial:folder:openFiles')
     },
+    media: {
+        getMetadata: (filePath) => invoke('parnasocial:media:metadata', filePath)
+    },
     fullscreen: {
         open: () => ipcRenderer.send('parnasocial:fullscreen:open')
     }
@@ -44,6 +47,7 @@ const api = {
 Object.freeze(api.app);
 Object.freeze(api.window);
 Object.freeze(api.folder);
+Object.freeze(api.media);
 Object.freeze(api.fullscreen);
 Object.freeze(api);
 
