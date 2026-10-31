@@ -1,4 +1,6 @@
-﻿# Parnasocial
+# Parnasocial
+
+![Screenshot](ghassets/Screenshot.png)
 
 A Windows desktop media player project in early development.
 
