@@ -42,7 +42,7 @@ const audio = new Audio();
 audio.preload = 'metadata';
 
 const settings = document.querySelector('.settings');
-const themeSwitch = document.querySelector('.switch input[type="checkbox"]');
+const themeSwitch = document.querySelector('.switchss input[type="checkbox"]');
 
 const directoryEl = document.querySelector('.directory');
 const playlistEl = document.querySelector('.playlist');

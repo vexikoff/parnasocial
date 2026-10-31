@@ -458,10 +458,12 @@ body {
                 border-radius: 8px;
                 position: relative;
                 overflow: hidden;
+                transition: all cubic-bezier(.1,.66,0,.99) 0.3s;
                 img {
                     width: 100%;
                     height: 100%;
                     z-index: 4;
+                    transition: all cubic-bezier(.1,.66,0,.99) 0.3s;
                 }
                 .timecont {
                     position: absolute;
@@ -641,7 +643,7 @@ body {
     top: 36px;
     bottom: 0;
     right: 0;
-    width: 256px;
+    width: 300px;
     z-index: 4;
     background-color: rgba(255, 255, 255, 1);
     border-radius: 8px;
@@ -654,7 +656,7 @@ body {
         flex-direction: row;
         align-items: center;
         p {
-            font-size: 20px;
+            font-size: 16px;
         }
     }
 
@@ -675,7 +677,7 @@ body {
 }
 
 .settings.vniz {
-    right: -270px;
+    right: -324px;
     transition: all cubic-bezier(1, 0.01, 0.9, 0.34) 0.3s;
 }
 
@@ -726,6 +728,10 @@ input:checked + .slider::before {
 
 input:checked + .slider {
     background-color: var(--secondary-container);
+}
+
+input:disabled + .slider {
+    background-color: #5d5d5d;
 }
 
 input:focus + .slider {
