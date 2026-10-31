@@ -39,6 +39,11 @@ const api = {
     media: {
         getMetadata: (filePath) => invoke('parnasocial:media:metadata', filePath)
     },
+    settings: {
+        getAutostart: () => invoke('parnasocial:autostart:get'),
+        setAutostart: (value) => invoke('parnasocial:autostart:set', value),
+        setTray: (value) => ipcRenderer.send('parnasocial:settings:tray', value)
+    },
     fullscreen: {
         open: () => ipcRenderer.send('parnasocial:fullscreen:open')
     }
@@ -48,6 +53,7 @@ Object.freeze(api.app);
 Object.freeze(api.window);
 Object.freeze(api.folder);
 Object.freeze(api.media);
+Object.freeze(api.settings);
 Object.freeze(api.fullscreen);
 Object.freeze(api);
 
