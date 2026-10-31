@@ -395,6 +395,7 @@ body {
 .main .right {
   display: flex;
   flex-direction: column;
+  position: relative;
   gap: 4px;
   flex: 1;
   padding: 8px;
@@ -424,6 +425,25 @@ body {
 }
 .main .right .top .button:hover {
   background-color: rgb(245, 245, 245);
+}
+.main .right .search {
+  position: absolute;
+  display: flex;
+  left: 8px;
+  right: 36px;
+  top: 8px;
+  height: 24px;
+  border: none;
+  box-sizing: border-box;
+  background-color: rgb(245, 245, 245);
+  padding: 4px;
+  border-radius: 4px;
+}
+.main .right .search:focus {
+  outline: none;
+}
+.main .right .search.skr {
+  display: none;
 }
 .main .right .spacer {
   height: 1px;

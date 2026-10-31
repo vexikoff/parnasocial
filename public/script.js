@@ -93,3 +93,28 @@ if (document.readyState === 'loading') {
 } else {
     adlf();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const srche = document.getElementById('srch');
+    const srcce = document.getElementById('srcc');
+    const top2 = document.querySelector('.top');
+
+    srche.addEventListener('mouseenter', function() {
+        srcce.focus();
+        srcce.classList.remove('skr');
+    });
+    top2.addEventListener('mouseleave', function() {
+        srcce.classList.add('skr');
+    });
+    const srchep = document.getElementById('srchp');
+    const srccep = document.getElementById('srccp');
+    const top2p = document.querySelector('.topp');
+
+    srchep.addEventListener('mouseenter', function() {
+        srccep.focus();
+        srccep.classList.remove('skr');
+    });
+    top2p.addEventListener('mouseleave', function() {
+        srccep.classList.add('skr');
+    })
+});
