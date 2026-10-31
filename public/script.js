@@ -122,27 +122,41 @@ document.addEventListener('DOMContentLoaded', function() {
 const fileBtn = document.getElementById('file');
 const fileMenu = document.getElementById('files');
 const recentMenu = document.querySelector('.recentt');
-const recentBtn = fileMenu ? fileMenu.querySelectorAll('.file.row')[1] : null;
+const fileRows = fileMenu ? fileMenu.querySelectorAll('.file.row') : [];
+const recentBtn = fileRows[1];
+const exitBtn = fileRows[2];
 
-let closeTimer = null;
+let fileTimer = null;
+let recentTimer = null;
 
-function cancelClose() {
-    clearTimeout(closeTimer);
+function cancelFileClose() {
+    clearTimeout(fileTimer);
 }
 
-function hideAll() {
+function cancelRecentClose() {
+    clearTimeout(recentTimer);
+}
+
+function hideFileMenu() {
     if (fileMenu) {
         fileMenu.classList.add('hidden');
     }
+}
 
+function hideRecentMenu() {
     if (recentMenu) {
         recentMenu.classList.add('hidden');
     }
 }
 
-function scheduleHide() {
-    cancelClose();
-    closeTimer = setTimeout(hideAll, 150);
+function scheduleFileClose() {
+    cancelFileClose();
+    fileTimer = setTimeout(hideFileMenu, 150);
+}
+
+function scheduleRecentClose() {
+    cancelRecentClose();
+    recentTimer = setTimeout(hideRecentMenu, 150);
 }
 
 function place(el, x, y) {
@@ -154,6 +168,8 @@ function place(el, x, y) {
     el.style.setProperty('position', 'fixed', 'important');
     el.style.setProperty('left', x + 'px', 'important');
     el.style.setProperty('top', y + 'px', 'important');
+    el.style.setProperty('margin-left', '0px', 'important');
+    el.style.setProperty('margin-top', '0px', 'important');
     el.style.setProperty('width', 'max-content', 'important');
     el.style.setProperty('transform', 'none', 'important');
     el.style.setProperty('transition', 'none', 'important');
@@ -165,25 +181,34 @@ if (fileBtn && fileMenu) {
     fileBtn.addEventListener('mouseenter', () => {
         const r = fileBtn.getBoundingClientRect();
 
-        if (recentMenu) {
-            recentMenu.classList.add('hidden');
-        }
+        cancelRecentClose();
+        hideRecentMenu();
 
         place(fileMenu, r.left, r.bottom);
     });
 
-    fileBtn.addEventListener('mouseleave', scheduleHide);
-    fileMenu.addEventListener('mouseenter', cancelClose);
-    fileMenu.addEventListener('mouseleave', scheduleHide);
+    fileBtn.addEventListener('mouseleave', scheduleFileClose);
+    fileMenu.addEventListener('mouseenter', cancelFileClose);
+    fileMenu.addEventListener('mouseleave', scheduleFileClose);
 }
 
 if (recentBtn && recentMenu) {
     recentBtn.addEventListener('mouseenter', () => {
         const r = recentBtn.getBoundingClientRect();
+
+        cancelRecentClose();
         place(recentMenu, r.right, r.top);
     });
 
-    recentBtn.addEventListener('mouseleave', scheduleHide);
-    recentMenu.addEventListener('mouseenter', cancelClose);
-    recentMenu.addEventListener('mouseleave', scheduleHide);
+    recentBtn.addEventListener('mouseleave', scheduleRecentClose);
+    recentMenu.addEventListener('mouseenter', cancelRecentClose);
+    recentMenu.addEventListener('mouseleave', scheduleRecentClose);
+}
+
+if (exitBtn) {
+    exitBtn.addEventListener('click', () => {
+        if (window.parnasocial && window.parnasocial.window && typeof window.parnasocial.window.close === 'function') {
+            window.parnasocial.window.close();
+        }
+    });
 }

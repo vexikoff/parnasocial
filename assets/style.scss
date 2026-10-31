@@ -72,6 +72,7 @@ body {
     .nav {
         margin: 12px;
         gap: 8px;
+        -webkit-app-region: no-drag;
         button {
             background: #cfecff;
             border: none;
@@ -143,13 +144,13 @@ body {
     button {
         border: none;
         padding: 4px 8px;
-        background-color: #F5F5F5;
+        background-color: #F5F5F59F;
         .rrd {
             margin-right: 4px;
             margin-left: auto;
         }
         &:hover {
-            background-color: #F0F0F0;
+            background-color: #F0F0F09F;
         }
         &.not {
             padding-left: 32px;

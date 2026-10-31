@@ -67,6 +67,7 @@ body {
 .header .nav {
   margin: 12px;
   gap: 8px;
+  -webkit-app-region: no-drag;
 }
 .header .nav button {
   background: #cfecff;
@@ -137,14 +138,14 @@ body {
 .filess button {
   border: none;
   padding: 4px 8px;
-  background-color: #F5F5F5;
+  background-color: rgba(245, 245, 245, 0.6235294118);
 }
 .filess button .rrd {
   margin-right: 4px;
   margin-left: auto;
 }
 .filess button:hover {
-  background-color: #F0F0F0;
+  background-color: rgba(240, 240, 240, 0.6235294118);
 }
 .filess button.not {
   padding-left: 32px;
