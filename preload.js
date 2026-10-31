@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-function invoke(channel) {
-    return ipcRenderer.invoke(channel);
+function invoke(channel, ...args) {
+    return ipcRenderer.invoke(channel, ...args);
 }
 
 function subscribe(channel, callback) {
@@ -30,11 +30,21 @@ const api = {
         close: () => invoke('parnasocial:window:close'),
         isMaximized: () => invoke('parnasocial:window:isMaximized'),
         onMaximized: (callback) => subscribe('parnasocial:window:maximized', callback)
+    },
+    folder: {
+        open: () => invoke('parnasocial:folder:open'),
+        read: (dirPath) => invoke('parnasocial:folder:read', dirPath),
+        openFiles: () => invoke('parnasocial:folder:openFiles')
+    },
+    fullscreen: {
+        open: () => ipcRenderer.send('parnasocial:fullscreen:open')
     }
 };
 
 Object.freeze(api.app);
 Object.freeze(api.window);
+Object.freeze(api.folder);
+Object.freeze(api.fullscreen);
 Object.freeze(api);
 
 contextBridge.exposeInMainWorld('parnasocial', {

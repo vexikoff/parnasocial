@@ -70,6 +70,7 @@ body {
   -webkit-app-region: no-drag;
 }
 .header .nav button {
+  -webkit-app-region: no-drag;
   background: #cfecff;
   border: none;
   border-radius: 4px;
@@ -761,6 +762,12 @@ html[data-theme="1"] .main .left .top .button {
 html[data-theme="1"] .main .left .top .button:hover {
   background-color: rgb(26, 26, 26) !important;
 }
+html[data-theme="1"] .main .left .directory .folder:hover {
+  background-color: rgb(26, 26, 26);
+}
+html[data-theme="1"] .main .left .directory .file:hover {
+  background-color: rgb(26, 26, 26);
+}
 html[data-theme="1"] .main .left .spacer {
   background-color: #303030 !important;
 }
@@ -781,6 +788,9 @@ html[data-theme="1"] .main .center .player .pr {
 }
 html[data-theme="1"] .main .right {
   background-color: rgb(16, 16, 16) !important;
+}
+html[data-theme="1"] .main .right .search {
+  background-color: rgb(26, 26, 26) !important;
 }
 html[data-theme="1"] .main .right .top .button {
   background-color: rgb(16, 16, 16) !important;

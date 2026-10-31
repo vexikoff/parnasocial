@@ -1,14 +1,20 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
+const { app, BrowserWindow, ipcMain, session, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 let mainWindow = null;
+let fullscreenWindow = null;
 
 const APP_ID = 'xyz.vexikoff.parnasocial';
 const APP_NAME = 'Parnasocial';
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
 const INDEX_PATH = path.join(__dirname, 'public', 'index.html');
+const FULLSCREEN_PATH = path.join(__dirname, 'public', 'fullscreen.html');
 const ICON_PATH = path.join(__dirname, 'assets', 'Parnasocial.ico');
 const WINDOW_CONTROLS_HEIGHT = 36;
+
+const AUDIO_EXTS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.aac', '.wma'];
+const VIDEO_EXTS = ['.mp4', '.webm', '.mkv', '.mov', '.avi'];
 
 const ALLOWED_PERMISSIONS = new Set([
     'clipboard-read',
@@ -26,13 +32,13 @@ function stripHash(url) {
 }
 
 function getTrustedWindow(event) {
-    if (!mainWindow || mainWindow.isDestroyed()) {
+    const sender = BrowserWindow.fromWebContents(event.sender);
+
+    if (sender !== mainWindow && sender !== fullscreenWindow) {
         return null;
     }
 
-    const window = BrowserWindow.fromWebContents(event.sender);
-
-    if (window !== mainWindow) {
+    if (!sender || sender.isDestroyed()) {
         return null;
     }
 
@@ -41,13 +47,13 @@ function getTrustedWindow(event) {
     }
 
     const frameUrl = stripHash(event.senderFrame.url);
-    const windowUrl = stripHash(mainWindow.webContents.getURL());
+    const windowUrl = stripHash(sender.webContents.getURL());
 
     if (frameUrl && windowUrl && frameUrl !== windowUrl) {
         return null;
     }
 
-    return window;
+    return sender;
 }
 
 function sendMaximizedState(window) {
@@ -56,6 +62,125 @@ function sendMaximizedState(window) {
     }
 
     window.webContents.send('parnasocial:window:maximized', window.isMaximized());
+}
+
+function getMediaType(filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+
+    if (AUDIO_EXTS.includes(ext)) {
+        return 'audio';
+    }
+
+    if (VIDEO_EXTS.includes(ext)) {
+        return 'video';
+    }
+
+    return 'file';
+}
+
+function readDirectory(dirPath) {
+    const entries = [];
+
+    try {
+        const items = fs.readdirSync(dirPath, { withFileTypes: true });
+
+        for (const item of items) {
+            const fullPath = path.join(dirPath, item.name);
+
+            if (item.isDirectory()) {
+                entries.push({
+                    name: item.name,
+                    path: fullPath,
+                    type: 'folder',
+                    children: readDirectory(fullPath)
+                });
+            } else if (item.isFile()) {
+                entries.push({
+                    name: item.name,
+                    path: fullPath,
+                    type: getMediaType(fullPath)
+                });
+            }
+        }
+    } catch (error) {
+        return entries;
+    }
+
+    return entries;
+}
+
+function createFullscreenWindow() {
+    if (fullscreenWindow && !fullscreenWindow.isDestroyed()) {
+        fullscreenWindow.focus();
+        return;
+    }
+
+    fullscreenWindow = new BrowserWindow({
+        width: 1280,
+        height: 800,
+        minWidth: 800,
+        minHeight: 600,
+        show: false,
+        title: APP_NAME,
+        icon: ICON_PATH,
+        backgroundColor: '#000000',
+        thickFrame: true,
+        titleBarStyle: 'hidden',
+        titleBarOverlay: {
+            color: '#101010',
+            symbolColor: '#FFFFFF',
+            height: WINDOW_CONTROLS_HEIGHT
+        },
+        webPreferences: {
+            preload: PRELOAD_PATH,
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            experimentalFeatures: false,
+            spellcheck: false,
+            devTools: !app.isPackaged
+        }
+    });
+
+    fullscreenWindow.setMenu(null);
+
+    fullscreenWindow.once('ready-to-show', () => {
+        fullscreenWindow.show();
+        sendMaximizedState(fullscreenWindow);
+    });
+
+    fullscreenWindow.on('maximize', () => {
+        sendMaximizedState(fullscreenWindow);
+    });
+
+    fullscreenWindow.on('unmaximize', () => {
+        sendMaximizedState(fullscreenWindow);
+    });
+
+    fullscreenWindow.on('closed', () => {
+        fullscreenWindow = null;
+    });
+
+    fullscreenWindow.webContents.setWindowOpenHandler(() => {
+        return { action: 'deny' };
+    });
+
+    fullscreenWindow.webContents.on('will-navigate', (event, url) => {
+        const currentUrl = stripHash(fullscreenWindow.webContents.getURL());
+        const targetUrl = stripHash(url);
+
+        if (!currentUrl || currentUrl !== targetUrl) {
+            event.preventDefault();
+        }
+    });
+
+    fullscreenWindow.loadFile(FULLSCREEN_PATH).catch(() => {
+        if (fullscreenWindow && !fullscreenWindow.isDestroyed()) {
+            fullscreenWindow.close();
+        }
+    });
 }
 
 function registerIpc() {
@@ -123,6 +248,72 @@ function registerIpc() {
         }
 
         return window.isMaximized();
+    });
+
+    ipcMain.handle('parnasocial:folder:open', async (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return null;
+        }
+
+        const result = await dialog.showOpenDialog(window, {
+            properties: ['openDirectory']
+        });
+
+        if (result.canceled || result.filePaths.length === 0) {
+            return null;
+        }
+
+        return result.filePaths[0];
+    });
+
+    ipcMain.handle('parnasocial:folder:read', (event, dirPath) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return null;
+        }
+
+        if (typeof dirPath !== 'string' || dirPath === '') {
+            return [];
+        }
+
+        return readDirectory(dirPath);
+    });
+
+    ipcMain.handle('parnasocial:folder:openFiles', async (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return [];
+        }
+
+        const result = await dialog.showOpenDialog(window, {
+            properties: ['openFile', 'multiSelections'],
+            filters: [
+                {
+                    name: 'Media',
+                    extensions: AUDIO_EXTS.map((e) => e.slice(1)).concat(VIDEO_EXTS.map((e) => e.slice(1)))
+                }
+            ]
+        });
+
+        if (result.canceled) {
+            return [];
+        }
+
+        return result.filePaths;
+    });
+
+    ipcMain.on('parnasocial:fullscreen:open', (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return;
+        }
+
+        createFullscreenWindow();
     });
 }
 
@@ -265,17 +456,19 @@ if (process.platform !== 'win32') {
 }
 
 ipcMain.on('themechang', (event, theme) => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
+    const window = getTrustedWindow(event);
+
+    if (!window) {
         return;
     }
 
     if (theme === '1') {
-        mainWindow.setTitleBarOverlay({
+        window.setTitleBarOverlay({
             color: '#101010',
             symbolColor: '#FFFFFF'
         });
     } else if (theme === '0') {
-        mainWindow.setTitleBarOverlay({
+        window.setTitleBarOverlay({
             color: '#ffffff',
             symbolColor: '#101010'
         });

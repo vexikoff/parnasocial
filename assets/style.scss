@@ -74,6 +74,7 @@ body {
         gap: 8px;
         -webkit-app-region: no-drag;
         button {
+            -webkit-app-region: no-drag;
             background: #cfecff;
             border: none;
             border-radius: 4px;
@@ -787,6 +788,16 @@ html[data-theme="1"] {
                 }
             }
 
+            .directory {
+                .folder:hover {
+                    background-color: rgb(26 26 26);
+                }
+
+                .file:hover {
+                    background-color: rgb(26 26 26);
+                }
+            }
+
             .spacer {
                 background-color: #303030 !important;
             }
@@ -816,6 +827,10 @@ html[data-theme="1"] {
 
         .right {
             background-color: rgb(16 16 16) !important;
+
+            .search {
+                background-color: rgb(26, 26, 26) !important;
+            }
 
             .top .button {
                 background-color: rgb(16 16 16) !important;
