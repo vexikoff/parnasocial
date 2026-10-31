@@ -119,19 +119,71 @@ document.addEventListener('DOMContentLoaded', function() {
     })
 });
 
-const file111 = document.getElementById('file');
-const filess = document.getElementById('files');
-const recentt = document.querySelector('.recentt');
-const recentBtn = filess ? filess.querySelector('.file.row:nth-of-type(2)') : null;
+const fileBtn = document.getElementById('file');
+const fileMenu = document.getElementById('files');
+const recentMenu = document.querySelector('.recentt');
+const recentBtn = fileMenu ? fileMenu.querySelectorAll('.file.row')[1] : null;
 
-if (file111 && filess) {
-    file111.addEventListener('mouseenter', () => {
-        filess.classList.remove('hidden');
-    });
+let closeTimer = null;
+
+function cancelClose() {
+    clearTimeout(closeTimer);
 }
 
-if (recentBtn && recentt) {
-    recentBtn.addEventListener('mouseenter', () => {
-        recentt.classList.remove('hidden');
+function hideAll() {
+    if (fileMenu) {
+        fileMenu.classList.add('hidden');
+    }
+
+    if (recentMenu) {
+        recentMenu.classList.add('hidden');
+    }
+}
+
+function scheduleHide() {
+    cancelClose();
+    closeTimer = setTimeout(hideAll, 150);
+}
+
+function place(el, x, y) {
+    if (!el) {
+        return;
+    }
+
+    el.classList.remove('hidden');
+    el.style.setProperty('position', 'fixed', 'important');
+    el.style.setProperty('left', x + 'px', 'important');
+    el.style.setProperty('top', y + 'px', 'important');
+    el.style.setProperty('width', 'max-content', 'important');
+    el.style.setProperty('transform', 'none', 'important');
+    el.style.setProperty('transition', 'none', 'important');
+    el.style.setProperty('animation', 'none', 'important');
+    el.style.setProperty('z-index', '9999', 'important');
+}
+
+if (fileBtn && fileMenu) {
+    fileBtn.addEventListener('mouseenter', () => {
+        const r = fileBtn.getBoundingClientRect();
+
+        if (recentMenu) {
+            recentMenu.classList.add('hidden');
+        }
+
+        place(fileMenu, r.left, r.bottom);
     });
+
+    fileBtn.addEventListener('mouseleave', scheduleHide);
+    fileMenu.addEventListener('mouseenter', cancelClose);
+    fileMenu.addEventListener('mouseleave', scheduleHide);
+}
+
+if (recentBtn && recentMenu) {
+    recentBtn.addEventListener('mouseenter', () => {
+        const r = recentBtn.getBoundingClientRect();
+        place(recentMenu, r.right, r.top);
+    });
+
+    recentBtn.addEventListener('mouseleave', scheduleHide);
+    recentMenu.addEventListener('mouseenter', cancelClose);
+    recentMenu.addEventListener('mouseleave', scheduleHide);
 }

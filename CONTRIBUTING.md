@@ -31,3 +31,8 @@ Before submitting a pull request, ensure that:
 ## Licensing
 
 By contributing to the Parnasocial project, you agree that your changes will be distributed under the terms of the license that applies to this repository.
+
+# AI 
+
+Limit on AI usage: 25% of the code.
+You need to understand for yourself what the agent is writing and what it is doing—and then verify and rewrite it.
