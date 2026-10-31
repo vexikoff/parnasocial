@@ -744,7 +744,7 @@ function createWindow(page) {
         width: 1280,
         height: 800,
         minWidth: 800,
-        minHeight: 600,
+        minHeight: 800,
         show: false,
         title: APP_NAME,
         icon: ICON_PATH,
