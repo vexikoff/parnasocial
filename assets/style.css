@@ -64,6 +64,18 @@ body {
   background: rgba(255, 255, 255, 0.6235294118);
   backdrop-filter: blur(12px);
 }
+.header .nav {
+  margin: 12px;
+  gap: 8px;
+}
+.header .nav button {
+  background: #cfecff;
+  border: none;
+  border-radius: 4px;
+  height: 24px;
+  width: auto;
+  padding: 0 12px;
+}
 .header .iconp {
   padding: 8px;
   display: flex;
@@ -106,6 +118,46 @@ body {
 }
 .header .right .segoe:hover {
   background-color: #DDDDDD;
+}
+
+.filess {
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 4px;
+  background-color: rgba(224, 224, 224, 0.7529411765);
+  z-index: 13;
+  width: 192px;
+  border: 1px solid #E0E0E0;
+  margin-left: 128px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.filess button {
+  border: none;
+  padding: 4px 8px;
+  background-color: #F5F5F5;
+}
+.filess button:hover {
+  background-color: #F0F0F0;
+}
+.filess button.not {
+  padding-left: 32px;
+}
+.filess {
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
+}
+
+.filess::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  bottom: -16px;
+  left: -16px;
+  right: -16px;
+  z-index: -1;
+  backdrop-filter: blur(12px);
 }
 
 .row {
@@ -548,6 +600,9 @@ body {
   font-size: 24px;
   font-family: "DM Sans", "Xmind", sans-serif;
   padding: 0;
+}
+.settings {
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
 }
 
 .settings.vniz {
