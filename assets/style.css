@@ -814,6 +814,9 @@ html[data-theme="1"] .filess button .rrd {
 html[data-theme="1"] .filess button:hover {
   background-color: rgba(16, 16, 16, 0.6235294118);
 }
+html[data-theme="1"] .filess {
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
+}
 html[data-theme="1"] .recentt {
   background-color: rgba(26, 26, 26, 0.7529411765);
   border: 1px solid #1f1f1f;
@@ -824,8 +827,12 @@ html[data-theme="1"] .recentt button {
 html[data-theme="1"] .recentt button:hover {
   background-color: #1f1f1f;
 }
+html[data-theme="1"] .recentt {
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
+}
 html[data-theme="1"] .settings {
   background-color: rgb(16, 16, 16);
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
 }
 
 /*# sourceMappingURL=style.css.map */

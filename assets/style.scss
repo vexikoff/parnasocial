@@ -858,6 +858,7 @@ html[data-theme="1"] {
                 background-color: #1010109F;
             }
         }
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
     }
     .recentt {
         background-color: #1a1a1aC0;
@@ -868,9 +869,11 @@ html[data-theme="1"] {
                 background-color: #1f1f1f;
             }
         }
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
     }
 
     .settings {
         background-color: rgb(16 16 16 / 1);
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
     }
 }
