@@ -135,24 +135,71 @@ body {
     border-radius: 4px;
     background-color: #E0E0E0C0;
     z-index: 13;
-    width: 192px;
+    width: 128px;
     border: 1px solid #E0E0E0;
-    margin-left: 128px;
-    margin-top: 12px;
+    margin-left: 132px;
+    margin-top: -8px;
     overflow: hidden;
     button {
         border: none;
         padding: 4px 8px;
         background-color: #F5F5F5;
+        .rrd {
+            margin-right: 4px;
+            margin-left: auto;
+        }
         &:hover {
             background-color: #F0F0F0;
         }
         &.not {
             padding-left: 32px;
         }
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    &.hidden {
+        display: none;
     }
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
 }
+.recentt {
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    gap: 1px;
+    border-radius: 4px;
+    background-color: #E0E0E0C0;
+    z-index: 13;
+    width: 128px;
+    border: 1px solid #E0E0E0;
+    margin-left: 256px;
+    margin-top: 20px;
+    overflow: hidden;
+    button {
+        border: none;
+        padding: 4px 8px;
+        background-color: #F5F5F5;
+        .rrd {
+            margin-right: 4px;
+            margin-left: auto;
+        }
+        &:hover {
+            background-color: #F0F0F0;
+        }
+        &.not {
+            padding-left: 32px;
+        }
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
+    &.hidden {
+        display: none;
+    }
+}
+
 
 .filess::before {
     content: '';
