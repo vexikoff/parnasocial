@@ -841,6 +841,35 @@ html[data-theme="1"] {
         }
     }
 
+    .nav button {
+        background: #062234 !important;
+    }
+
+    .filess {
+        background-color: #1a1a1aC0;
+        border: 1px solid #1f1f1f;
+        button {
+            background-color: rgb(26 26 26 / 0.62);
+            .rrd {
+                margin-right: 4px;
+                margin-left: auto;
+            }
+            &:hover {
+                background-color: #1010109F;
+            }
+        }
+    }
+    .recentt {
+        background-color: #1a1a1aC0;
+        border: 1px solid #1f1f1f;
+        button {
+            background-color: #1a1a1a;
+            &:hover {
+                background-color: #1f1f1f;
+            }
+        }
+    }
+
     .settings {
         background-color: rgb(16 16 16 / 1);
     }

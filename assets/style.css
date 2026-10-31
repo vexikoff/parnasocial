@@ -797,6 +797,33 @@ html[data-theme="1"] .main .right .playlist .folder:hover {
 html[data-theme="1"] .main .right .playlist .file:hover {
   background-color: rgb(26, 26, 26);
 }
+html[data-theme="1"] .nav button {
+  background: #062234 !important;
+}
+html[data-theme="1"] .filess {
+  background-color: rgba(26, 26, 26, 0.7529411765);
+  border: 1px solid #1f1f1f;
+}
+html[data-theme="1"] .filess button {
+  background-color: rgba(26, 26, 26, 0.62);
+}
+html[data-theme="1"] .filess button .rrd {
+  margin-right: 4px;
+  margin-left: auto;
+}
+html[data-theme="1"] .filess button:hover {
+  background-color: rgba(16, 16, 16, 0.6235294118);
+}
+html[data-theme="1"] .recentt {
+  background-color: rgba(26, 26, 26, 0.7529411765);
+  border: 1px solid #1f1f1f;
+}
+html[data-theme="1"] .recentt button {
+  background-color: #1a1a1a;
+}
+html[data-theme="1"] .recentt button:hover {
+  background-color: #1f1f1f;
+}
 html[data-theme="1"] .settings {
   background-color: rgb(16, 16, 16);
 }
