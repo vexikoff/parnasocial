@@ -1924,20 +1924,41 @@ function setupDropZone(element, handler) {
 
         if (files && files.length > 0) {
             const items = [];
+            const canGetPath = window.parnasocial && window.parnasocial.files && typeof window.parnasocial.files.getPathForFile === 'function';
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
 
-                if (file && file.path) {
-                    const type = getMediaType(file.path);
+                if (!file) {
+                    continue;
+                }
 
-                    if (type === 'audio' || type === 'video') {
-                        items.push({
-                            name: file.name || file.path.split(/[\\/]/).pop(),
-                            path: file.path,
-                            type
-                        });
+                let filePath = '';
+
+                if (canGetPath) {
+                    try {
+                        filePath = window.parnasocial.files.getPathForFile(file) || '';
+                    } catch (error) {
+                        filePath = '';
                     }
+                }
+
+                if (!filePath && typeof file.path === 'string') {
+                    filePath = file.path;
+                }
+
+                if (!filePath) {
+                    continue;
+                }
+
+                const type = getMediaType(filePath);
+
+                if (type === 'audio' || type === 'video') {
+                    items.push({
+                        name: file.name || filePath.split(/[\\/]/).pop(),
+                        path: filePath,
+                        type
+                    });
                 }
             }
 

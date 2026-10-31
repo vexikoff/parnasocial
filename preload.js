@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 function invoke(channel, ...args) {
     return ipcRenderer.invoke(channel, ...args);
@@ -26,7 +26,6 @@ const api = {
         getPendingFile: () => invoke('parnasocial:app:getPendingFile'),
         onOpenFile: (callback) => subscribe('parnasocial:file:open', callback)
     },
-    navigate: (page) => invoke('parnasocial:navigate', page),
     window: {
         minimize: () => invoke('parnasocial:window:minimize'),
         toggleMaximize: () => invoke('parnasocial:window:toggleMaximize'),
@@ -41,6 +40,9 @@ const api = {
         open: () => invoke('parnasocial:folder:open'),
         read: (dirPath) => invoke('parnasocial:folder:read', dirPath),
         openFiles: () => invoke('parnasocial:folder:openFiles')
+    },
+    files: {
+        getPathForFile: (file) => webUtils.getPathForFile(file)
     },
     media: {
         getMetadata: (filePath) => invoke('parnasocial:media:metadata', filePath)
@@ -58,6 +60,7 @@ const api = {
 Object.freeze(api.app);
 Object.freeze(api.window);
 Object.freeze(api.folder);
+Object.freeze(api.files);
 Object.freeze(api.media);
 Object.freeze(api.settings);
 Object.freeze(api.fullscreen);
