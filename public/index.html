@@ -27,16 +27,22 @@
                 <button class="segoeplus button" id="searchfolder">&#xE721;</button>
             </div>
             <div class="spacer"></div>
+            <div class="directory">
+
+            </div>
         </div>
         <div class="center">
             <div class="row">
-                <h1>Здравствуйте, </h1>
+                <h1>Hello, </h1>
                 <h1 id="name"></h1>
             </div>
             <div class="player">
-                <div class="prew"></div>
+                <div class="prew">
+                    <img src="../assets/pre.png" class="playerimg" id="playerimg">
+                    <div class="timecont"><div class="time" id="time"></div></div>
+                </div>
                 <div class="row">
-                    <button class="segoeplus pr" id="fullscreen">&#xE740;</button>
+                    <button class="segoeplus pr" id="videomode">&#xE714;</button>
                     <button class="segoeplus pr" id="back">&#xE892;</button>
                     <button class="segoeplus play" id="play">&#xE768;</button>
                     <button class="segoeplus pr" id="next">&#xE893;</button>
@@ -57,11 +63,48 @@
                 <button class="segoeplus button" id="searchplaylist">&#xE721;</button>
             </div>
             <div class="spacer"></div>
+            <div class="playlist">
+                <div class="folder">
+                    <div class="row">
+                        <p class="segoeplus" id="skr">&#xE70D;</p>
+                        <p class="segoeplus">&#xE838;</p>
+                        <p class="foldername">Folder name</p>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="folder">
+                        <div class="row">
+                            <p class="segoeplus" id="raskr">&#xE76C;</p>
+                            <p class="segoeplus">&#xE8B7;</p>
+                            <p class="foldername">Folder name</p>
+                        </div>
+                    </div>
+                    <div class="file">
+                        <div class="row">
+                            <p class="segoeplus">&#xE90B;</p>
+                            <p class="foldername">File name</p>
+                        </div>
+                    </div>
+                    <div class="folder">
+                        <div class="row">
+                            <p class="segoeplus" id="raskr2">&#xE76C;</p>
+                            <p class="segoeplus">&#xE8B7;</p>
+                            <p class="foldername">Folder name</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="settings vniz">
         <div class="main">
             <h1>Settings</h1>
+            <div class="row">
+                <label class="switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                </label>
+                <p>Dark theme</p>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>

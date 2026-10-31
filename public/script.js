@@ -1,12 +1,25 @@
 var yaebalneironki = localStorage.getItem('yaebalneironki');
 const settings = document.querySelector('.settings');
+const themeSwitch = document.querySelector('.switch input[type="checkbox"]');
 
 if (yaebalneironki !== '0' && yaebalneironki !== '1') {
     yaebalneironki = '0';
 }
 
+function syncThemeToMain(theme) {
+    if (!window.parnasocial || typeof window.parnasocial.changeth !== 'function') {
+        return;
+    }
+
+    window.parnasocial.changeth(theme);
+}
+
 function aplittheme() {
     document.documentElement.setAttribute('data-theme', yaebalneironki);
+
+    if (themeSwitch) {
+        themeSwitch.checked = yaebalneironki === '1';
+    }
 }
 
 function saveth(theme) {
@@ -17,6 +30,7 @@ function saveth(theme) {
     yaebalneironki = theme;
     localStorage.setItem('yaebalneironki', yaebalneironki);
     aplittheme();
+    syncThemeToMain(yaebalneironki);
 }
 
 function aplitheme() {
@@ -35,7 +49,19 @@ function openset() {
     settings.classList.toggle('vniz');
 }
 
+function bindThemeSwitch() {
+    if (!themeSwitch) {
+        return;
+    }
+
+    themeSwitch.addEventListener('change', () => {
+        saveth(themeSwitch.checked ? '1' : '0');
+    });
+}
+
 aplittheme();
+bindThemeSwitch();
+syncThemeToMain(yaebalneironki);
 
 async function adlf() {
     const nameHeading = document.getElementById('name');
@@ -45,7 +71,7 @@ async function adlf() {
     }
 
     if (!window.parnasocial || typeof window.parnasocial.getWindowsUsername !== 'function') {
-        nameHeading.textContent = 'пользователь';
+        nameHeading.textContent = 'user';
         return;
     }
 
@@ -55,10 +81,10 @@ async function adlf() {
         if (typeof username === 'string' && username.trim() !== '') {
             nameHeading.textContent = username.trim();
         } else {
-            nameHeading.textContent = 'пользователь';
+            nameHeading.textContent = 'user';
         }
     } catch (error) {
-        nameHeading.textContent = 'пользователь';
+        nameHeading.textContent = 'user';
     }
 }
 

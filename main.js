@@ -6,7 +6,7 @@ let mainWindow = null;
 const APP_ID = 'xyz.vexikoff.parnasocial';
 const APP_NAME = 'Parnasocial';
 const PRELOAD_PATH = path.join(__dirname, 'preload.js');
-const INDEX_PATH = path.join(__dirname, 'public', 'index.html');
+const INDEX_PATH = path.join(__dirname, 'public', 'fullscreen.html');
 const ICON_PATH = path.join(__dirname, 'assets', 'Parnasocial.ico');
 const WINDOW_CONTROLS_HEIGHT = 36;
 
@@ -265,13 +265,17 @@ if (process.platform !== 'win32') {
 }
 
 ipcMain.on('themechang', (event, theme) => {
-    if (theme === 'dark') {
-        win.setTitleBarOverlay({
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        return;
+    }
+
+    if (theme === '1') {
+        mainWindow.setTitleBarOverlay({
             color: '#101010',
-            symbolColor: '#f9f9f9'
+            symbolColor: '#FFFFFF'
         });
-    } else {
-        win.setTitleBarOverlay({
+    } else if (theme === '0') {
+        mainWindow.setTitleBarOverlay({
             color: '#ffffff',
             symbolColor: '#101010'
         });
