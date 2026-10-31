@@ -1,9 +1,12 @@
-const { app, BrowserWindow, ipcMain, session, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, session, dialog, Tray, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 let mainWindow = null;
 let fullscreenWindow = null;
+let tray = null;
+let keepInTray = false;
+let forceQuit = false;
 
 const APP_ID = 'xyz.vexikoff.parnasocial';
 const APP_NAME = 'Parnasocial';
@@ -261,6 +264,53 @@ function readId3Metadata(filePath) {
     }
 }
 
+function showMainWindow() {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        return;
+    }
+
+    mainWindow.show();
+    mainWindow.focus();
+}
+
+function ensureTray() {
+    if (tray) {
+        return;
+    }
+
+    tray = new Tray(ICON_PATH);
+    tray.setToolTip(APP_NAME);
+
+    const menu = Menu.buildFromTemplate([
+        {
+            label: 'Show ' + APP_NAME,
+            click: showMainWindow
+        },
+        {
+            type: 'separator'
+        },
+        {
+            label: 'Quit',
+            click: () => {
+                forceQuit = true;
+                app.quit();
+            }
+        }
+    ]);
+
+    tray.on('click', showMainWindow);
+    tray.setContextMenu(menu);
+}
+
+function destroyTray() {
+    if (!tray) {
+        return;
+    }
+
+    tray.destroy();
+    tray = null;
+}
+
 function createFullscreenWindow() {
     if (fullscreenWindow && !fullscreenWindow.isDestroyed()) {
         fullscreenWindow.focus();
@@ -469,6 +519,51 @@ function registerIpc() {
         return readId3Metadata(filePath);
     });
 
+    ipcMain.handle('parnasocial:autostart:get', (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return false;
+        }
+
+        try {
+            return app.getLoginItemSettings().openAtLogin;
+        } catch (error) {
+            return false;
+        }
+    });
+
+    ipcMain.handle('parnasocial:autostart:set', (event, value) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return false;
+        }
+
+        try {
+            app.setLoginItemSettings({ openAtLogin: value === true });
+            return true;
+        } catch (error) {
+            return false;
+        }
+    });
+
+    ipcMain.on('parnasocial:settings:tray', (event, value) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return;
+        }
+
+        keepInTray = value === true;
+
+        if (keepInTray) {
+            ensureTray();
+        } else {
+            destroyTray();
+        }
+    });
+
     ipcMain.on('parnasocial:fullscreen:open', (event) => {
         const window = getTrustedWindow(event);
 
@@ -547,6 +642,13 @@ function createWindow() {
         sendMaximizedState(mainWindow);
     });
 
+    mainWindow.on('close', (event) => {
+        if (keepInTray && !forceQuit) {
+            event.preventDefault();
+            mainWindow.hide();
+        }
+    });
+
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
@@ -590,7 +692,7 @@ if (process.platform !== 'win32') {
                     mainWindow.restore();
                 }
 
-                mainWindow.focus();
+                showMainWindow();
             }
         });
 
@@ -637,4 +739,8 @@ ipcMain.on('themechang', (event, theme) => {
 
 app.on('window-all-closed', () => {
     app.quit();
+});
+
+app.on('before-quit', () => {
+    forceQuit = true;
 });

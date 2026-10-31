@@ -454,7 +454,7 @@ body {
   overflow: hidden;
   transition: all cubic-bezier(0.1, 0.66, 0, 0.99) 0.3s;
 }
-.main .center .player .prew img {
+.main .center .player .prew img, .main .center .player .prew video {
   width: 100%;
   height: 100%;
   z-index: 4;
