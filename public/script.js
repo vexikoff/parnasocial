@@ -21,7 +21,7 @@ const THEME_KEY = 'yaebalneironki';
 const AUDIO_EXTS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma'];
 const VIDEO_EXTS = ['mp4', 'webm', 'mkv', 'mov', 'avi'];
 const CROSSFADE_MS = 500;
-const PREVIEW_MAX = 512;
+const PREVIEW_MAX = 384;
 
 const ICON_PLAY = '\uE768';
 const ICON_PAUSE = '\uE769';
