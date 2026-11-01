@@ -10,6 +10,8 @@ The goal is a local-first player: no account, no cloud, no telemetry. The curren
 
 Windows only. The application targets `win32` and `x64`. The main process exits immediately when launched on another platform.
 
+[Linux and mac](https://github.com/vexikoff/parnasocial-mac-linux/)
+
 ## Tech stack
 
 - Electron as the desktop shell.
