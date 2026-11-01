@@ -24,7 +24,8 @@ const api = {
     app: {
         getInfo: () => invoke('parnasocial:app:getInfo'),
         getPendingFile: () => invoke('parnasocial:app:getPendingFile'),
-        onOpenFile: (callback) => subscribe('parnasocial:file:open', callback)
+        onOpenFile: (callback) => subscribe('parnasocial:file:open', callback),
+        restart: () => ipcRenderer.send('parnasocial:app:restart')
     },
     window: {
         minimize: () => invoke('parnasocial:window:minimize'),
@@ -50,6 +51,16 @@ const api = {
     rpc: {
         update: (payload) => ipcRenderer.send('parnasocial:rpc:update', payload)
     },
+    power: {
+        set: (value) => ipcRenderer.send('parnasocial:power:set', value)
+    },
+    watch: {
+        set: (dirs) => ipcRenderer.send('parnasocial:watch:set', dirs),
+        onChanged: (callback) => subscribe('parnasocial:folder:changed', callback)
+    },
+    hardware: {
+        set: (value) => ipcRenderer.send('parnasocial:hardware:set', value)
+    },
     settings: {
         getAutostart: () => invoke('parnasocial:autostart:get'),
         setAutostart: (value) => invoke('parnasocial:autostart:set', value),
@@ -66,6 +77,9 @@ Object.freeze(api.folder);
 Object.freeze(api.files);
 Object.freeze(api.media);
 Object.freeze(api.rpc);
+Object.freeze(api.power);
+Object.freeze(api.watch);
+Object.freeze(api.hardware);
 Object.freeze(api.settings);
 Object.freeze(api.fullscreen);
 Object.freeze(api);

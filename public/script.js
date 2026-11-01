@@ -13,7 +13,8 @@ const state = {
     searchLeft: '',
     searchRight: '',
     activeFolder: null,
-    directoryTrees: []
+    directoryTrees: [],
+    rootDirs: []
 };
 
 const STORAGE_KEY = 'parnasocial:state';
@@ -136,6 +137,85 @@ function isPreviewOn() {
 
 function isAutoRatioOn() {
     return settingValue('autoRatio', false) === true;
+}
+
+function isAwakeOn() {
+    return settingValue('stayAwake', false) === true;
+}
+
+function isWatchOn() {
+    return settingValue('watchFolders', false) === true;
+}
+
+function getOutputDevice() {
+    const value = settingValue('outputDevice', '');
+    return typeof value === 'string' ? value : '';
+}
+
+function applyPower() {
+    if (!window.parnasocial || !window.parnasocial.power || typeof window.parnasocial.power.set !== 'function') {
+        return;
+    }
+
+    const on = isAwakeOn() && state.currentIndex >= 0 && !!audio.src && !audio.paused;
+
+    window.parnasocial.power.set(on);
+}
+
+function tryCtxSink(ctx, id) {
+    if (ctx && typeof ctx.setSinkId === 'function') {
+        try {
+            const result = ctx.setSinkId(id);
+
+            if (result && typeof result.catch === 'function') {
+                result.catch(() => {
+                });
+            }
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+function tryElSink(el, id) {
+    if (el && typeof el.setSinkId === 'function') {
+        try {
+            const result = el.setSinkId(id);
+
+            if (result && typeof result.catch === 'function') {
+                result.catch(() => {
+                });
+            }
+        } catch (error) {
+        }
+    }
+}
+
+function applyOutputDevice() {
+    const id = getOutputDevice();
+
+    if (graphReady) {
+        tryCtxSink(audioCtx, id);
+    }
+
+    tryElSink(audio, id);
+    tryElSink(previewVideo, id);
+
+    if (audioAlt) {
+        tryElSink(audioAlt, id);
+    }
+}
+
+function syncWatch() {
+    if (!window.parnasocial || !window.parnasocial.watch || typeof window.parnasocial.watch.set !== 'function') {
+        return;
+    }
+
+    window.parnasocial.watch.set(isWatchOn() ? state.rootDirs.slice() : []);
 }
 
 let yaebalneironki = localStorage.getItem(THEME_KEY);
@@ -397,6 +477,10 @@ async function openFolderByPath(dirPath) {
         state.directoryTrees.push(rootNode);
     }
 
+    if (!state.rootDirs.includes(dirPath)) {
+        state.rootDirs.push(dirPath);
+    }
+
     if (!state.openedDirs.includes(dirPath)) {
         state.openedDirs.push(dirPath);
     }
@@ -406,6 +490,7 @@ async function openFolderByPath(dirPath) {
     pushRecentFolder(dirPath);
     renderDirectory();
     saveState();
+    syncWatch();
 }
 
 if (fileBtn && fileMenu) {
@@ -529,7 +614,8 @@ function saveState() {
             repeat: state.repeat,
             shuffle: state.shuffle,
             volume: state.volume,
-            openedDirs: state.openedDirs
+            openedDirs: state.openedDirs,
+            rootDirs: state.rootDirs
         };
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -568,6 +654,10 @@ function loadState() {
             state.openedDirs = data.openedDirs;
         }
 
+        if (Array.isArray(data.rootDirs)) {
+            state.rootDirs = data.rootDirs;
+        }
+
         if (isSaveOn() && Array.isArray(data.playlist)) {
             state.playlist = data.playlist;
         } else {
@@ -575,6 +665,39 @@ function loadState() {
             state.currentIndex = -1;
         }
     } catch (error) {
+    }
+}
+
+async function restoreDirectoryTrees() {
+    if (!window.parnasocial || !window.parnasocial.folder || typeof window.parnasocial.folder.read !== 'function') {
+        return;
+    }
+
+    const dirs = Array.isArray(state.rootDirs) ? state.rootDirs.slice() : [];
+
+    if (dirs.length === 0) {
+        return;
+    }
+
+    const trees = [];
+
+    for (const dirPath of dirs) {
+        try {
+            const tree = await window.parnasocial.folder.read(dirPath);
+
+            trees.push({
+                name: dirPath.split(/[\\/]/).pop() || dirPath,
+                path: dirPath,
+                type: 'folder',
+                children: Array.isArray(tree) ? tree : []
+            });
+        } catch (error) {
+        }
+    }
+
+    if (trees.length > 0) {
+        state.directoryTrees = trees;
+        renderDirectory();
     }
 }
 
@@ -936,6 +1059,7 @@ function attachPlayer(player) {
 
         startRpcTimer();
         reportRpc();
+        applyPower();
 
         if (previewActive()) {
             previewVideo.play().catch(() => {
@@ -953,6 +1077,7 @@ function attachPlayer(player) {
         rpcStartedAt = 0;
         stopRpcTimer();
         reportRpc();
+        applyPower();
         previewVideo.pause();
     });
 
@@ -964,6 +1089,7 @@ function attachPlayer(player) {
         state.isPlaying = false;
         updatePlayButton();
         stopRpcTimer();
+        applyPower();
 
         playNext();
     });
@@ -1211,6 +1337,7 @@ function loadTrack(index, autoPlay) {
     loadMetadata(index);
     syncPreviewSource();
     reportRpc();
+    applyPower();
 
     if (state.shuffle) {
         const shuffleIdx = state.shuffleOrder.indexOf(index);
@@ -1566,14 +1693,25 @@ function buildFileNode(node) {
 
     const row = document.createElement('div');
     row.className = 'row';
+    row.style.alignItems = 'center';
+    row.style.minWidth = '0';
+    row.style.overflow = 'hidden';
 
     const icon = document.createElement('p');
     icon.className = 'segoeplus';
     icon.textContent = node.type === 'video' ? ICON_VIDEO : ICON_MUSIC;
+    icon.style.lineHeight = '1';
+    icon.style.flexShrink = '0';
+    icon.style.alignSelf = 'center';
 
     const name = document.createElement('p');
     name.className = 'foldername';
     name.textContent = node.name;
+    name.style.flex = '1 1 auto';
+    name.style.minWidth = '0';
+    name.style.overflow = 'hidden';
+    name.style.textOverflow = 'ellipsis';
+    name.style.whiteSpace = 'nowrap';
 
     row.appendChild(icon);
     row.appendChild(name);
@@ -1621,17 +1759,31 @@ function buildDirectoryNode(node, depth) {
 
     const row = document.createElement('div');
     row.className = 'row';
+    row.style.alignItems = 'center';
+    row.style.minWidth = '0';
+    row.style.overflow = 'hidden';
 
     const chevron = document.createElement('p');
     chevron.className = 'segoeplus';
+    chevron.style.lineHeight = '1';
+    chevron.style.flexShrink = '0';
+    chevron.style.alignSelf = 'center';
 
     const icon = document.createElement('p');
     icon.className = 'segoeplus';
     icon.textContent = ICON_FOLDER;
+    icon.style.lineHeight = '1';
+    icon.style.flexShrink = '0';
+    icon.style.alignSelf = 'center';
 
     const name = document.createElement('p');
     name.className = 'foldername';
     name.textContent = node.name;
+    name.style.flex = '1 1 auto';
+    name.style.minWidth = '0';
+    name.style.overflow = 'hidden';
+    name.style.textOverflow = 'ellipsis';
+    name.style.whiteSpace = 'nowrap';
 
     const isOpen = state.openedDirs.includes(node.path) || node.forceOpen === true;
 
@@ -1762,14 +1914,25 @@ function renderPlaylist() {
 
         const row = document.createElement('div');
         row.className = 'row';
+        row.style.alignItems = 'center';
+        row.style.minWidth = '0';
+        row.style.overflow = 'hidden';
 
         const icon = document.createElement('p');
         icon.className = 'segoeplus';
         icon.textContent = item.type === 'video' ? ICON_VIDEO : ICON_MUSIC;
+        icon.style.lineHeight = '1';
+        icon.style.flexShrink = '0';
+        icon.style.alignSelf = 'center';
 
         const name = document.createElement('p');
         name.className = 'foldername';
         name.textContent = stripExt(item.name);
+        name.style.flex = '1 1 auto';
+        name.style.minWidth = '0';
+        name.style.overflow = 'hidden';
+        name.style.textOverflow = 'ellipsis';
+        name.style.whiteSpace = 'nowrap';
 
         row.appendChild(icon);
         row.appendChild(name);
@@ -1780,6 +1943,9 @@ function renderPlaylist() {
             dur.textContent = formatTime(item.duration);
             dur.style.marginLeft = 'auto';
             dur.style.opacity = '0.6';
+            dur.style.flexShrink = '0';
+            dur.style.whiteSpace = 'nowrap';
+            dur.style.alignSelf = 'center';
             row.appendChild(dur);
         }
 
@@ -1820,6 +1986,10 @@ async function openFolderAndAdd() {
 
     state.directoryTrees.push(rootNode);
 
+    if (!state.rootDirs.includes(dirPath)) {
+        state.rootDirs.push(dirPath);
+    }
+
     if (!state.openedDirs.includes(dirPath)) {
         state.openedDirs.push(dirPath);
     }
@@ -1828,6 +1998,7 @@ async function openFolderAndAdd() {
 
     renderDirectory();
     saveState();
+    syncWatch();
 
     return dirPath;
 }
@@ -2156,6 +2327,8 @@ function ensureAudioGraph() {
 
         graphReady = true;
 
+        applyOutputDevice();
+
         return true;
     } catch (error) {
         graphReady = false;
@@ -2285,7 +2458,46 @@ window.addEventListener('parnasocial:settings', (event) => {
     if (event.detail === 'discordRpc') {
         reportRpc();
     }
+
+    if (event.detail === 'stayAwake') {
+        applyPower();
+    }
+
+    if (event.detail === 'outputDevice') {
+        applyOutputDevice();
+    }
+
+    if (event.detail === 'watchFolders') {
+        syncWatch();
+    }
 });
+
+if (window.parnasocial && window.parnasocial.watch && typeof window.parnasocial.watch.onChanged === 'function') {
+    window.parnasocial.watch.onChanged(async (dirPath) => {
+        if (!isWatchOn()) {
+            return;
+        }
+
+        if (!state.rootDirs.includes(dirPath)) {
+            return;
+        }
+
+        if (!window.parnasocial || !window.parnasocial.folder || typeof window.parnasocial.folder.read !== 'function') {
+            return;
+        }
+
+        try {
+            const tree = await window.parnasocial.folder.read(dirPath);
+            const idx = state.directoryTrees.findIndex((n) => n.path === dirPath);
+
+            if (idx !== -1) {
+                state.directoryTrees[idx].children = Array.isArray(tree) ? tree : [];
+                renderDirectory();
+            }
+        } catch (error) {
+        }
+    });
+}
 
 if (playBtn) {
     playBtn.addEventListener('click', () => {
@@ -2591,6 +2803,10 @@ updateShuffleButtons();
 renderDirectory();
 renderPlaylist();
 updatePreviewDisplay();
+restoreDirectoryTrees();
+applyOutputDevice();
+syncWatch();
+applyPower();
 
 if (state.currentIndex >= 0 && state.playlist.length > 0) {
     loadTrack(state.currentIndex, false);

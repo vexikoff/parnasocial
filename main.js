@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session, dialog, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, session, dialog, Tray, Menu, powerSaveBlocker } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -26,8 +26,16 @@ const ALL_MEDIA_EXTS = AUDIO_EXTS.concat(VIDEO_EXTS);
 
 const ALLOWED_PERMISSIONS = new Set([
     'clipboard-read',
-    'clipboard-sanitized-write'
+    'clipboard-sanitized-write',
+    'media'
 ]);
+
+const playingSenders = new Set();
+let awakeBlockerId = null;
+
+const folderWatchers = new Map();
+const folderDebounce = new Map();
+const WATCH_DEBOUNCE_MS = 400;
 
 function stripHash(url) {
     const hashIndex = url.indexOf('#');
@@ -90,6 +98,49 @@ function getSavedTheme() {
 function writeSavedTheme(theme) {
     try {
         fs.writeFileSync(getThemeStatePath(), JSON.stringify({ theme }), 'utf8');
+    } catch (error) {
+    }
+}
+
+function getHardwareStatePath() {
+    const base = process.env.APPDATA;
+
+    if (typeof base !== 'string' || base === '') {
+        return '';
+    }
+
+    return path.join(base, APP_NAME, 'hardware.json');
+}
+
+function getSavedHardware() {
+    const filePath = getHardwareStatePath();
+
+    if (filePath === '') {
+        return true;
+    }
+
+    try {
+        const raw = fs.readFileSync(filePath, 'utf8');
+        const data = JSON.parse(raw);
+
+        if (data && data.hardware === false) {
+            return false;
+        }
+    } catch (error) {
+    }
+
+    return true;
+}
+
+function writeSavedHardware(value) {
+    const filePath = getHardwareStatePath();
+
+    if (filePath === '') {
+        return;
+    }
+
+    try {
+        fs.writeFileSync(filePath, JSON.stringify({ hardware: value === true }), 'utf8');
     } catch (error) {
     }
 }
@@ -917,6 +968,145 @@ function registerIpc() {
 
         createFullscreenWindow();
     });
+
+    ipcMain.on('parnasocial:power:set', (event, value) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return;
+        }
+
+        if (value === true) {
+            playingSenders.add(event.sender.id);
+        } else {
+            playingSenders.delete(event.sender.id);
+        }
+
+        reconcilePower();
+    });
+
+    ipcMain.on('parnasocial:watch:set', (event, dirs) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return;
+        }
+
+        setWatchDirs(dirs);
+    });
+
+    ipcMain.on('parnasocial:hardware:set', (event, value) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return;
+        }
+
+        writeSavedHardware(value === true);
+    });
+
+    ipcMain.on('parnasocial:app:restart', (event) => {
+        const window = getTrustedWindow(event);
+
+        if (!window) {
+            return;
+        }
+
+        forceQuit = true;
+        app.relaunch();
+        app.exit(0);
+    });
+}
+
+function reconcilePower() {
+    if (playingSenders.size > 0) {
+        if (awakeBlockerId === null || !powerSaveBlocker.isStarted(awakeBlockerId)) {
+            awakeBlockerId = powerSaveBlocker.start('prevent-display-sleep');
+        }
+
+        return;
+    }
+
+    if (awakeBlockerId !== null && powerSaveBlocker.isStarted(awakeBlockerId)) {
+        powerSaveBlocker.stop(awakeBlockerId);
+    }
+
+    awakeBlockerId = null;
+}
+
+function broadcastFolderChange(dirPath) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('parnasocial:folder:changed', dirPath);
+    }
+
+    if (fullscreenWindow && !fullscreenWindow.isDestroyed()) {
+        fullscreenWindow.webContents.send('parnasocial:folder:changed', dirPath);
+    }
+}
+
+function scheduleFolderChange(dirPath) {
+    const old = folderDebounce.get(dirPath);
+
+    if (old) {
+        clearTimeout(old);
+    }
+
+    const timer = setTimeout(() => {
+        folderDebounce.delete(dirPath);
+        broadcastFolderChange(dirPath);
+    }, WATCH_DEBOUNCE_MS);
+
+    folderDebounce.set(dirPath, timer);
+}
+
+function setWatchDirs(dirs) {
+    const desired = new Set(Array.isArray(dirs) ? dirs.filter((d) => typeof d === 'string' && d !== '') : []);
+
+    for (const [dirPath, entry] of folderWatchers.entries()) {
+        if (!desired.has(dirPath)) {
+            try {
+                entry.watcher.close();
+            } catch (error) {
+            }
+
+            const timer = folderDebounce.get(dirPath);
+
+            if (timer) {
+                clearTimeout(timer);
+                folderDebounce.delete(dirPath);
+            }
+
+            folderWatchers.delete(dirPath);
+        }
+    }
+
+    for (const dirPath of desired) {
+        if (folderWatchers.has(dirPath)) {
+            continue;
+        }
+
+        try {
+            const watcher = fs.watch(dirPath, { persistent: true }, () => {
+                scheduleFolderChange(dirPath);
+            });
+
+            watcher.on('error', () => {
+                const entry = folderWatchers.get(dirPath);
+
+                if (entry) {
+                    try {
+                        entry.watcher.close();
+                    } catch (error) {
+                    }
+
+                    folderWatchers.delete(dirPath);
+                }
+            });
+
+            folderWatchers.set(dirPath, { watcher });
+        } catch (error) {
+        }
+    }
 }
 
 function getWindowsSystemUsername() {
@@ -931,7 +1121,7 @@ function getWindowsSystemUsername() {
     }
 
     if (username === '') {
-        username = 'Пользователь';
+        username = 'User';
     }
 
     return username;
@@ -996,6 +1186,10 @@ function createWindow(page) {
     });
 }
 
+if (getSavedHardware() === false) {
+    app.disableHardwareAcceleration();
+}
+
 pendingMediaFile = extractMediaArg(process.argv);
 
 if (pendingMediaFile && getMediaType(pendingMediaFile) === 'video') {
@@ -1044,8 +1238,8 @@ if (process.platform !== 'win32') {
                 callback(ALLOWED_PERMISSIONS.has(permission));
             });
 
-            session.defaultSession.setPermissionCheckHandler((details) => {
-                return ALLOWED_PERMISSIONS.has(details.permission);
+            session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+                return ALLOWED_PERMISSIONS.has(permission);
             });
 
             registerIpc();
@@ -1083,6 +1277,14 @@ ipcMain.on('themechang', (event, theme) => {
 });
 
 app.on('window-all-closed', () => {
+    for (const [, entry] of folderWatchers.entries()) {
+        try {
+            entry.watcher.close();
+        } catch (error) {
+        }
+    }
+
+    folderWatchers.clear();
     app.quit();
 });
 

@@ -100,6 +100,76 @@ function isBassOn() {
     return false;
 }
 
+function isAwakeOn() {
+    if (window.pSettings && typeof window.pSettings.get === 'function') {
+        return window.pSettings.get('stayAwake') === true;
+    }
+
+    return false;
+}
+
+function getOutputDevice() {
+    if (window.pSettings && typeof window.pSettings.get === 'function') {
+        const value = window.pSettings.get('outputDevice');
+        return typeof value === 'string' ? value : '';
+    }
+
+    return '';
+}
+
+function applyPower() {
+    if (!window.parnasocial || !window.parnasocial.power || typeof window.parnasocial.power.set !== 'function') {
+        return;
+    }
+
+    const on = isAwakeOn() && !!video.src && !video.paused;
+
+    window.parnasocial.power.set(on);
+}
+
+function tryCtxSink(ctx, id) {
+    if (ctx && typeof ctx.setSinkId === 'function') {
+        try {
+            const result = ctx.setSinkId(id);
+
+            if (result && typeof result.catch === 'function') {
+                result.catch(() => {
+                });
+            }
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+function tryElSink(el, id) {
+    if (el && typeof el.setSinkId === 'function') {
+        try {
+            const result = el.setSinkId(id);
+
+            if (result && typeof result.catch === 'function') {
+                result.catch(() => {
+                });
+            }
+        } catch (error) {
+        }
+    }
+}
+
+function applyOutputDevice() {
+    const id = getOutputDevice();
+
+    if (fsGraphReady) {
+        tryCtxSink(fsAudioCtx, id);
+    }
+
+    tryElSink(video, id);
+}
+
 let rpcStartedAt = 0;
 
 function isRpcOn() {
@@ -186,6 +256,8 @@ function ensureFsBassGraph() {
 
         fsGraphReady = true;
 
+        applyOutputDevice();
+
         return true;
     } catch (error) {
         fsGraphReady = false;
@@ -238,6 +310,14 @@ window.addEventListener('parnasocial:settings', (event) => {
         }
 
         applyFsBassState();
+    }
+
+    if (event.detail === 'stayAwake') {
+        applyPower();
+    }
+
+    if (event.detail === 'outputDevice') {
+        applyOutputDevice();
     }
 });
 
@@ -700,6 +780,7 @@ video.addEventListener('play', () => {
 
     startRpcTimer();
     reportRpc();
+    applyPower();
 });
 
 video.addEventListener('pause', () => {
@@ -707,10 +788,12 @@ video.addEventListener('pause', () => {
     rpcStartedAt = 0;
     stopRpcTimer();
     reportRpc();
+    applyPower();
 });
 
 video.addEventListener('ended', () => {
     playButton.textContent = ICON_PLAY;
+    applyPower();
 
     if (currentState && currentState.repeat === 'one') {
         video.currentTime = 0;
@@ -921,6 +1004,7 @@ if (window.parnasocial && window.parnasocial.app && typeof window.parnasocial.ap
 (async function initFullscreen() {
     ensureCoverDom();
     bindFsFirstGesture();
+    applyOutputDevice();
 
     let pending = null;
 

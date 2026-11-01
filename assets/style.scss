@@ -52,6 +52,14 @@
     cursor: default;
 }
 
+html {
+    overflow: hidden;
+}
+
+html.highcontrast {
+    filter: contrast(1.5) !important;
+}
+
 body {
     overflow: hidden;
 }
@@ -68,6 +76,7 @@ body {
     z-index: 5;
     background: #ffffff9F;
     backdrop-filter: blur(12px);
+    z-index: 401;
 
     .nav {
         margin: 12px;
@@ -229,6 +238,73 @@ body {
     display: flex;
     flex-direction: row;
     gap: 10px;
+}
+
+.predcont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 400;
+    .pred {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        width: 440px;
+        height: auto;
+        margin: auto;
+        background-color: #F5F5F5D0;
+        z-index: 300;
+        gap: 8px;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+        p {
+            opacity: 0.5;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+        .row {
+            margin-top: auto;
+            button {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                flex: 2;
+                margin-top: auto;
+                border: none;
+                border-radius: 4px;
+                height: 24px;
+                background-color: #F5F5F5;
+                -webkit-app-region: no-drag;
+
+                &.restart {
+                    flex: 3;
+                }
+                &:hover {
+                    background-color: #E0E0E0;
+                }
+            }
+        }
+    }
+    .pred::before {
+        content: '';
+        position: absolute;
+        top: -24px;
+        bottom: -24px;
+        left: -24px;
+        right: -24px;
+        backdrop-filter: blur(24px);
+        z-index: -1;
+    }
 }
 
 .grad {
@@ -655,11 +731,11 @@ body {
     top: 36px;
     bottom: 0;
     right: 0;
-    width: 300px;
+    width: 720px;
     z-index: 4;
     background-color: rgba(255, 255, 255, 1);
     border-radius: 8px;
-    transition: all cubic-bezier(.1,.66,0,.99) 0.3s;
+    transition: all cubic-bezier(.1,.66,0,.99) 0.5s;
     margin: 8px;
     padding-left: 4px;
 
@@ -679,6 +755,63 @@ body {
         padding: 0;
         padding-left: 8px;
         flex-direction: column;
+        .row {
+            .lefts {
+                display: flex;
+                flex-direction: column;
+                margin-right: auto;
+                gap: 4px;
+
+                .outputdev {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    width: auto;
+                    max-width: 284px;
+                    border-radius: 4px;
+                    background-color: #F0F0F0;
+                    border: 1px #DDDDDD solid;
+                    height: auto;
+                    outline: none;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    padding-right: 32px;
+                    box-sizing: border-box;
+                }
+
+                .outputdev:focus {
+                    outline: none;
+                }
+
+                option {
+                    padding: 10px;
+                    background: #fff;
+                    color: #333;
+                }
+            }
+            .rights {
+                display: flex;
+                flex-direction: column;
+                margin-right: auto;
+                gap: 4px;
+            }
+            .row {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 4px;
+                p {
+                    font-size: 16px;
+                }
+            }
+            h3 {
+                margin-top: 12px;
+            }
+            display: flex;
+            gap: 2px;
+        }
         h1 {
             font-size: 24px;
             font-family: 'DM Sans', 'Xmind',  sans-serif;
@@ -689,8 +822,8 @@ body {
 }
 
 .settings.vniz {
-    right: -324px;
-    transition: all cubic-bezier(1, 0.01, 0.9, 0.34) 0.3s;
+    right: -750px;
+    transition: all cubic-bezier(1, 0.01, 0.9, 0.34) 0.5s;
 }
 
 /* From Uiverse.io by TimTrayler */

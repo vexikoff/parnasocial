@@ -47,6 +47,14 @@
   cursor: default;
 }
 
+html {
+  overflow: hidden;
+}
+
+html.highcontrast {
+  filter: contrast(1.5) !important;
+}
+
 body {
   overflow: hidden;
 }
@@ -63,6 +71,7 @@ body {
   z-index: 5;
   background: rgba(255, 255, 255, 0.6235294118);
   backdrop-filter: blur(12px);
+  z-index: 401;
 }
 .header .nav {
   margin: 12px;
@@ -230,6 +239,72 @@ body {
   display: flex;
   flex-direction: row;
   gap: 10px;
+}
+
+.predcont {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 400;
+}
+.predcont .pred {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 440px;
+  height: auto;
+  margin: auto;
+  background-color: rgba(245, 245, 245, 0.8156862745);
+  z-index: 300;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+.predcont .pred p {
+  opacity: 0.5;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.predcont .pred .row {
+  margin-top: auto;
+}
+.predcont .pred .row button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex: 2;
+  margin-top: auto;
+  border: none;
+  border-radius: 4px;
+  height: 24px;
+  background-color: #F5F5F5;
+  -webkit-app-region: no-drag;
+}
+.predcont .pred .row button.restart {
+  flex: 3;
+}
+.predcont .pred .row button:hover {
+  background-color: #E0E0E0;
+}
+.predcont .pred::before {
+  content: "";
+  position: absolute;
+  top: -24px;
+  bottom: -24px;
+  left: -24px;
+  right: -24px;
+  backdrop-filter: blur(24px);
+  z-index: -1;
 }
 
 .grad {
@@ -643,11 +718,11 @@ body {
   top: 36px;
   bottom: 0;
   right: 0;
-  width: 300px;
+  width: 720px;
   z-index: 4;
   background-color: rgb(255, 255, 255);
   border-radius: 8px;
-  transition: all cubic-bezier(0.1, 0.66, 0, 0.99) 0.3s;
+  transition: all cubic-bezier(0.1, 0.66, 0, 0.99) 0.5s;
   margin: 8px;
   padding-left: 4px;
 }
@@ -667,6 +742,60 @@ body {
   padding-left: 8px;
   flex-direction: column;
 }
+.settings .main .row .lefts {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+  gap: 4px;
+}
+.settings .main .row .lefts .outputdev {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  max-width: 284px;
+  border-radius: 4px;
+  background-color: #F0F0F0;
+  border: 1px #DDDDDD solid;
+  height: auto;
+  outline: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding-right: 32px;
+  box-sizing: border-box;
+}
+.settings .main .row .lefts .outputdev:focus {
+  outline: none;
+}
+.settings .main .row .lefts option {
+  padding: 10px;
+  background: #fff;
+  color: #333;
+}
+.settings .main .row .rights {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+  gap: 4px;
+}
+.settings .main .row .row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+.settings .main .row .row p {
+  font-size: 16px;
+}
+.settings .main .row h3 {
+  margin-top: 12px;
+}
+.settings .main .row {
+  display: flex;
+  gap: 2px;
+}
 .settings .main h1 {
   font-size: 24px;
   font-family: "DM Sans", "Xmind", sans-serif;
@@ -677,8 +806,8 @@ body {
 }
 
 .settings.vniz {
-  right: -324px;
-  transition: all cubic-bezier(1, 0.01, 0.9, 0.34) 0.3s;
+  right: -750px;
+  transition: all cubic-bezier(1, 0.01, 0.9, 0.34) 0.5s;
 }
 
 /* From Uiverse.io by TimTrayler */
