@@ -1817,8 +1817,15 @@ function buildDirectoryNode(node, depth) {
         renderDirectory();
     });
 
-    row.draggable = true;
+    if (depth === 0) {
+        row.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            removeRootFolder(node.path);
+        });
+    }
 
+    row.draggable = true;
     row.addEventListener('dragstart', (event) => {
         internalDragPath = node.path;
         event.dataTransfer.setData('text/parnasocial-node', node.path);
@@ -1854,6 +1861,34 @@ function makeEmptyText(text) {
     empty.textContent = text;
     empty.style.opacity = '0.5';
     return empty;
+}
+
+function removeRootFolder(dirPath) {
+    const idx = state.directoryTrees.findIndex((n) => n.path === dirPath);
+
+    if (idx === -1) {
+        return;
+    }
+
+    state.directoryTrees.splice(idx, 1);
+
+    const rootIdx = state.rootDirs.indexOf(dirPath);
+
+    if (rootIdx !== -1) {
+        state.rootDirs.splice(rootIdx, 1);
+    }
+
+    state.openedDirs = state.openedDirs.filter((p) => {
+        return p !== dirPath && !p.startsWith(dirPath + '\\') && !p.startsWith(dirPath + '/');
+    });
+
+    if (state.activeFolder === dirPath) {
+        state.activeFolder = null;
+    }
+
+    saveState();
+    syncWatch();
+    renderDirectory();
 }
 
 function renderDirectory() {
@@ -2056,7 +2091,7 @@ function addActiveFolderToPlaylist() {
     addToPlaylist(items);
 }
 
-function setupDropZone(element, handler) {
+function setupDropZone(element, handler, allowInternal) {
     if (!element) {
         return;
     }
@@ -2081,9 +2116,14 @@ function setupDropZone(element, handler) {
             nodePath = event.dataTransfer.getData('text/parnasocial-node');
         }
 
+        const wasInternal = internalDragPath !== null;
         internalDragPath = null;
 
         if (nodePath && Array.isArray(state.directoryTrees)) {
+            if (wasInternal && allowInternal !== true) {
+                return;
+            }
+
             let foundNode = null;
 
             for (const root of state.directoryTrees) {
@@ -2158,11 +2198,11 @@ function setupDropZone(element, handler) {
 
 setupDropZone(leftPanel, (items) => {
     addToPlaylist(items);
-});
+}, false);
 
 setupDropZone(rightPanel, (items) => {
     addToPlaylist(items);
-});
+}, true);
 
 document.addEventListener('dragover', (event) => {
     event.preventDefault();
