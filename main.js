@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, session, dialog, Tray, Menu } = require('el
 const path = require('path');
 const fs = require('fs');
 
+require('./discordrpc.js');
+
 let mainWindow = null;
 let fullscreenWindow = null;
 let tray = null;
@@ -65,6 +67,31 @@ function getTrustedWindow(event) {
     }
 
     return sender;
+}
+
+function getThemeStatePath() {
+    return path.join(app.getPath('userData'), 'theme.json');
+}
+
+function getSavedTheme() {
+    try {
+        const raw = fs.readFileSync(getThemeStatePath(), 'utf8');
+        const data = JSON.parse(raw);
+
+        if (data && data.theme === '1') {
+            return '1';
+        }
+    } catch (error) {
+    }
+
+    return '0';
+}
+
+function writeSavedTheme(theme) {
+    try {
+        fs.writeFileSync(getThemeStatePath(), JSON.stringify({ theme }), 'utf8');
+    } catch (error) {
+    }
 }
 
 function getMediaType(filePath) {
@@ -305,6 +332,181 @@ function readId3Metadata(filePath) {
     }
 }
 
+function parseVorbisComment(body) {
+    const result = {
+        title: '',
+        artist: ''
+    };
+
+    try {
+        let pos = 0;
+
+        if (pos + 4 > body.length) {
+            return result;
+        }
+
+        const vendorLen = body.readUInt32LE(pos);
+        pos += 4 + vendorLen;
+
+        if (pos + 4 > body.length) {
+            return result;
+        }
+
+        const count = body.readUInt32LE(pos);
+        pos += 4;
+
+        for (let i = 0; i < count && pos + 4 <= body.length; i++) {
+            const len = body.readUInt32LE(pos);
+            pos += 4;
+
+            if (pos + len > body.length) {
+                break;
+            }
+
+            const entry = body.slice(pos, pos + len).toString('utf8');
+            pos += len;
+
+            const eq = entry.indexOf('=');
+
+            if (eq === -1) {
+                continue;
+            }
+
+            const key = entry.slice(0, eq).toUpperCase();
+            const value = entry.slice(eq + 1).trim();
+
+            if (key === 'TITLE' && !result.title) {
+                result.title = value;
+            } else if (key === 'ARTIST' && !result.artist) {
+                result.artist = value;
+            }
+        }
+    } catch (error) {
+    }
+
+    return result;
+}
+
+function parseFlacPicture(body) {
+    try {
+        let pos = 4;
+
+        if (pos + 4 > body.length) {
+            return null;
+        }
+
+        const mimeLen = body.readUInt32BE(pos);
+        pos += 4;
+
+        if (pos + mimeLen > body.length) {
+            return null;
+        }
+
+        const mime = body.slice(pos, pos + mimeLen).toString('utf8');
+        pos += mimeLen;
+
+        if (pos + 4 > body.length) {
+            return null;
+        }
+
+        const descLen = body.readUInt32BE(pos);
+        pos += 4 + descLen;
+
+        if (pos + 20 > body.length) {
+            return null;
+        }
+
+        pos += 16;
+
+        const dataLen = body.readUInt32BE(pos);
+        pos += 4;
+
+        if (pos + dataLen > body.length) {
+            return null;
+        }
+
+        return {
+            mime: mime || 'image/png',
+            base64: body.slice(pos, pos + dataLen).toString('base64')
+        };
+    } catch (error) {
+        return null;
+    }
+}
+
+function readFlacMetadata(filePath) {
+    const result = {
+        title: '',
+        artist: '',
+        pictureMime: '',
+        pictureBase64: ''
+    };
+
+    try {
+        const fd = fs.openSync(filePath, 'r');
+        const stat = fs.fstatSync(fd);
+        const magic = Buffer.alloc(4);
+        const readCount = fs.readSync(fd, magic, 0, 4, 0);
+
+        if (readCount < 4 || magic.toString('latin1') !== 'fLaC') {
+            fs.closeSync(fd);
+            return null;
+        }
+
+        let offset = 4;
+        let isLast = false;
+
+        while (!isLast && offset + 4 <= stat.size) {
+            const head = Buffer.alloc(4);
+            fs.readSync(fd, head, 0, 4, offset);
+
+            isLast = (head[0] & 0x80) !== 0;
+            const type = head[0] & 0x7f;
+            const length = (head[1] << 16) | (head[2] << 8) | head[3];
+
+            if (length <= 0 || offset + 4 + length > stat.size) {
+                break;
+            }
+
+            if (type === 4 || (type === 6 && !result.pictureBase64)) {
+                const body = Buffer.alloc(length);
+                fs.readSync(fd, body, 0, length, offset + 4);
+
+                if (type === 4) {
+                    const texts = parseVorbisComment(body);
+                    result.title = texts.title;
+                    result.artist = texts.artist;
+                } else {
+                    const pic = parseFlacPicture(body);
+
+                    if (pic) {
+                        result.pictureMime = pic.mime;
+                        result.pictureBase64 = pic.base64;
+                    }
+                }
+            }
+
+            offset += 4 + length;
+        }
+
+        fs.closeSync(fd);
+
+        return result;
+    } catch (error) {
+        return null;
+    }
+}
+
+function readMediaMetadata(filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+
+    if (ext === '.flac') {
+        return readFlacMetadata(filePath);
+    }
+
+    return readId3Metadata(filePath);
+}
+
 function showMainWindow() {
     if (!mainWindow || mainWindow.isDestroyed()) {
         return;
@@ -396,20 +598,22 @@ function createFullscreenWindow() {
         return;
     }
 
+    const dark = getSavedTheme() === '1';
+
     fullscreenWindow = new BrowserWindow({
         width: 1280,
         height: 800,
         minWidth: 800,
-        minHeight: 600,
+        minHeight: 1000,
         show: false,
         title: APP_NAME,
         icon: ICON_PATH,
-        backgroundColor: '#000000',
+        backgroundColor: dark ? '#101010' : '#ffffff',
         thickFrame: true,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: '#101010',
-            symbolColor: '#FFFFFF',
+            color: dark ? '#101010' : '#ffffff',
+            symbolColor: dark ? '#FFFFFF' : '#101010',
             height: WINDOW_CONTROLS_HEIGHT
         },
         webPreferences: {
@@ -656,7 +860,7 @@ function registerIpc() {
             return null;
         }
 
-        return readId3Metadata(filePath);
+        return readMediaMetadata(filePath);
     });
 
     ipcMain.handle('parnasocial:autostart:get', (event) => {
@@ -739,21 +943,22 @@ ipcMain.handle('system:get-windows-username', () => {
 
 function createWindow(page) {
     const targetPath = page === 'fullscreen' ? FULLSCREEN_PATH : INDEX_PATH;
+    const dark = getSavedTheme() === '1';
 
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
-        minWidth: 800,
+        minWidth: 1000,
         minHeight: 800,
         show: false,
         title: APP_NAME,
         icon: ICON_PATH,
-        backgroundColor: page === 'fullscreen' ? '#000000' : '#ffffff',
+        backgroundColor: dark ? '#101010' : '#ffffff',
         thickFrame: true,
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: page === 'fullscreen' ? '#101010' : '#ffffff',
-            symbolColor: page === 'fullscreen' ? '#FFFFFF' : '#101010',
+            color: dark ? '#101010' : '#ffffff',
+            symbolColor: dark ? '#FFFFFF' : '#101010',
             height: WINDOW_CONTROLS_HEIGHT
         },
         webPreferences: {
@@ -863,11 +1068,13 @@ ipcMain.on('themechang', (event, theme) => {
     }
 
     if (theme === '1') {
+        writeSavedTheme('1');
         window.setTitleBarOverlay({
             color: '#101010',
             symbolColor: '#FFFFFF'
         });
     } else if (theme === '0') {
+        writeSavedTheme('0');
         window.setTitleBarOverlay({
             color: '#ffffff',
             symbolColor: '#101010'

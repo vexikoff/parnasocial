@@ -47,6 +47,9 @@ const api = {
     media: {
         getMetadata: (filePath) => invoke('parnasocial:media:metadata', filePath)
     },
+    rpc: {
+        update: (payload) => ipcRenderer.send('parnasocial:rpc:update', payload)
+    },
     settings: {
         getAutostart: () => invoke('parnasocial:autostart:get'),
         setAutostart: (value) => invoke('parnasocial:autostart:set', value),
@@ -62,13 +65,13 @@ Object.freeze(api.window);
 Object.freeze(api.folder);
 Object.freeze(api.files);
 Object.freeze(api.media);
+Object.freeze(api.rpc);
 Object.freeze(api.settings);
 Object.freeze(api.fullscreen);
 Object.freeze(api);
 
 contextBridge.exposeInMainWorld('parnasocial', {
     changeth: (theme) => ipcRenderer.send('themechang', theme),
-    navigate: api.navigate,
     ...api,
     getWindowsUsername: () => {
         return ipcRenderer.invoke('system:get-windows-username');

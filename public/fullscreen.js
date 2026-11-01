@@ -100,6 +100,68 @@ function isBassOn() {
     return false;
 }
 
+let rpcStartedAt = 0;
+
+function isRpcOn() {
+    if (window.pSettings && typeof window.pSettings.get === 'function') {
+        return window.pSettings.get('discordRpc') === true;
+    }
+
+    return false;
+}
+
+function stripExtLocal(name) {
+    if (typeof name !== 'string') {
+        return '';
+    }
+
+    const idx = name.lastIndexOf('.');
+
+    return idx === -1 ? name : name.slice(0, idx);
+}
+
+function reportRpc() {
+    if (!window.parnasocial || !window.parnasocial.rpc || typeof window.parnasocial.rpc.update !== 'function') {
+        return;
+    }
+
+    const track = currentState && Array.isArray(currentState.playlist) ? currentState.playlist[currentState.currentIndex] : null;
+    const title = track ? stripExtLocal(track.name) : (currentState && currentState.name ? currentState.name : '');
+    const playing = !!video.src && !video.paused;
+
+    window.parnasocial.rpc.update({
+        enabled: isRpcOn(),
+        mode: 'video',
+        title,
+        artist: '',
+        duration: Number.isFinite(video.duration) ? video.duration : 0,
+        currentTime: video.currentTime || 0,
+        playing,
+        startedAt: playing ? (rpcStartedAt || Date.now()) : 0
+    });
+}
+
+let rpcTimer = null;
+
+function startRpcTimer() {
+    if (rpcTimer !== null) {
+        return;
+    }
+
+    rpcTimer = setInterval(() => {
+        reportRpc();
+    }, 10000);
+}
+
+function stopRpcTimer() {
+    if (rpcTimer === null) {
+        return;
+    }
+
+    clearInterval(rpcTimer);
+    rpcTimer = null;
+}
+
 function ensureFsBassGraph() {
     if (fsGraphReady) {
         return true;
@@ -494,6 +556,7 @@ function loadTrackFromPlaylist(index, autoPlay) {
     video.src = track.path;
     video.load();
     applyCoverVisibility();
+    reportRpc();
 
     if (autoPlay) {
         video.play().catch(() => {
@@ -630,10 +693,20 @@ function openExternalFile(filePath) {
 video.addEventListener('play', () => {
     playButton.textContent = ICON_PAUSE;
     resumeFsAudio();
+
+    if (!rpcStartedAt) {
+        rpcStartedAt = Date.now();
+    }
+
+    startRpcTimer();
+    reportRpc();
 });
 
 video.addEventListener('pause', () => {
     playButton.textContent = ICON_PLAY;
+    rpcStartedAt = 0;
+    stopRpcTimer();
+    reportRpc();
 });
 
 video.addEventListener('ended', () => {
@@ -653,6 +726,7 @@ video.addEventListener('timeupdate', updateTimeline);
 video.addEventListener('loadedmetadata', () => {
     applyVolume();
     updateTimeline();
+    reportRpc();
 
     if (currentState && typeof currentState.currentTime === 'number' && currentState.currentTime > 0) {
         video.currentTime = currentState.currentTime;
@@ -923,4 +997,6 @@ if (window.parnasocial && window.parnasocial.app && typeof window.parnasocial.ap
         ensureFsBassGraph();
         applyFsBassState();
     }
+
+    reportRpc();
 })();

@@ -8,7 +8,8 @@ const settingsDefaults = {
     videoPreview: false,
     autoRatio: false,
     vizualizator: false,
-    bassBoost: false
+    bassBoost: false,
+    discordRpc: false
 };
 
 let settingsStore = Object.assign({}, settingsDefaults);
@@ -61,6 +62,7 @@ const previewSwitch = document.querySelector('.switchsssss input[type="checkbox"
 const ratioSwitch = document.querySelector('.switchssssss input[type="checkbox"]');
 const vizSwitch = document.querySelector('.switchccccc input[type="checkbox"]');
 const bassSwitch = document.querySelector('.bassc input[type="checkbox"]');
+const rpcSwitch = document.querySelector('.rpc input[type="checkbox"]');
 
 function syncRatioDisabled() {
     if (ratioSwitch) {
@@ -98,6 +100,10 @@ if (vizSwitch) {
 
 if (bassSwitch) {
     bassSwitch.checked = settingsStore.bassBoost;
+}
+
+if (rpcSwitch) {
+    rpcSwitch.checked = settingsStore.discordRpc;
 }
 
 syncRatioDisabled();
@@ -163,6 +169,12 @@ if (vizSwitch) {
 if (bassSwitch) {
     bassSwitch.addEventListener('change', () => {
         window.pSettings.set('bassBoost', bassSwitch.checked);
+    });
+}
+
+if (rpcSwitch) {
+    rpcSwitch.addEventListener('change', () => {
+        window.pSettings.set('discordRpc', rpcSwitch.checked);
     });
 }
 

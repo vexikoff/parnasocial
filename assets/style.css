@@ -411,7 +411,6 @@ body {
   align-items: center;
   gap: 24px;
   margin-top: 12px;
-  transition: all cubic-bezier(0.1, 0.66, 0, 0.99) 0.3s;
 }
 .main .center .player .volume {
   transition: all cubic-bezier(0.1, 0.66, 0, 0.99) 0.3s;

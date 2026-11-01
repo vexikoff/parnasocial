@@ -812,6 +812,7 @@ async function loadMetadata(index) {
         track.metaArtist = stored.artist;
         applyMeta(index, stored);
         saveState();
+        reportRpc();
     } catch (error) {
     }
 }
@@ -929,6 +930,13 @@ function attachPlayer(player) {
         state.isPlaying = true;
         updatePlayButton();
 
+        if (!rpcStartedAt) {
+            rpcStartedAt = Date.now();
+        }
+
+        startRpcTimer();
+        reportRpc();
+
         if (previewActive()) {
             previewVideo.play().catch(() => {
             });
@@ -942,6 +950,9 @@ function attachPlayer(player) {
 
         state.isPlaying = false;
         updatePlayButton();
+        rpcStartedAt = 0;
+        stopRpcTimer();
+        reportRpc();
         previewVideo.pause();
     });
 
@@ -952,6 +963,7 @@ function attachPlayer(player) {
 
         state.isPlaying = false;
         updatePlayButton();
+        stopRpcTimer();
 
         playNext();
     });
@@ -1008,6 +1020,7 @@ function attachPlayer(player) {
         }
 
         updateTimeline();
+        reportRpc();
     });
 
     player.addEventListener('durationchange', () => {
@@ -1192,9 +1205,12 @@ function loadTrack(index, autoPlay) {
         }
     }
 
+    rpcStartedAt = 0;
+
     updateTrackInfo();
     loadMetadata(index);
     syncPreviewSource();
+    reportRpc();
 
     if (state.shuffle) {
         const shuffleIdx = state.shuffleOrder.indexOf(index);
@@ -2040,6 +2056,58 @@ function isBassOn() {
     return false;
 }
 
+let rpcStartedAt = 0;
+
+function isRpcOn() {
+    if (window.pSettings && typeof window.pSettings.get === 'function') {
+        return window.pSettings.get('discordRpc') === true;
+    }
+
+    return false;
+}
+
+function reportRpc() {
+    if (!window.parnasocial || !window.parnasocial.rpc || typeof window.parnasocial.rpc.update !== 'function') {
+        return;
+    }
+
+    const track = state.playlist[state.currentIndex];
+    const stored = track ? metaCache[track.path] : null;
+    const playing = !!track && !audio.paused;
+
+    window.parnasocial.rpc.update({
+        enabled: isRpcOn(),
+        mode: 'audio',
+        title: track ? (stored && stored.title ? stored.title : (track.metaTitle ? track.metaTitle : stripExt(track.name))) : '',
+        artist: track ? (stored ? stored.artist : (track.metaArtist || '')) : '',
+        duration: Number.isFinite(audio.duration) ? audio.duration : 0,
+        currentTime: audio.currentTime || 0,
+        playing,
+        startedAt: playing ? (rpcStartedAt || Date.now()) : 0
+    });
+}
+
+let rpcTimer = null;
+
+function startRpcTimer() {
+    if (rpcTimer !== null) {
+        return;
+    }
+
+    rpcTimer = setInterval(() => {
+        reportRpc();
+    }, 10000);
+}
+
+function stopRpcTimer() {
+    if (rpcTimer === null) {
+        return;
+    }
+
+    clearInterval(rpcTimer);
+    rpcTimer = null;
+}
+
 function wirePlayerSource(player) {
     if (!audioCtx || sourceMap.has(player)) {
         return;
@@ -2072,7 +2140,7 @@ function ensureAudioGraph() {
         bassFilter.gain.value = 0;
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0.75;
+        analyser.smoothingTimeConstant = 0;
         masterGain = audioCtx.createGain();
         masterGain.gain.value = 1;
 
@@ -2116,14 +2184,14 @@ function buildVizTargets() {
     if (prewEl) {
         targets.push({
             el: prewEl,
-            lift: 0,
-            liftPeak: 0,
+            lift: 1,
+            liftPeak: 2,
             sway: 1,
             swayPeak: 4,
             rotMax: 3,
             rotPeak: 5,
-            scaleMax: 0.001,
-            scalePeak: 0.007,
+            scaleMax: 0.002,
+            scalePeak: 0.015,
             dir: 1
         });
     }
@@ -2212,6 +2280,10 @@ window.addEventListener('parnasocial:settings', (event) => {
         }
 
         applyBassState();
+    }
+
+    if (event.detail === 'discordRpc') {
+        reportRpc();
     }
 });
 
@@ -2526,6 +2598,7 @@ if (state.currentIndex >= 0 && state.playlist.length > 0) {
 
 pullPendingFile();
 bindFirstGesture();
+reportRpc();
 
 if (isVizOn() || isBassOn()) {
     ensureAudioGraph();

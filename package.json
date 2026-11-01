@@ -1,7 +1,7 @@
 {
   "name": "parnasocial",
   "productName": "Parnasocial",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "commonjs",
   "main": "main.js",
@@ -52,15 +52,22 @@
     "compression": "maximum",
     "forceCodeSigning": false,
     "artifactName": "${productName}-${version}-${arch}-${os}.${ext}",
+    "electronLanguages": [
+      "en-US",
+      "ru-RU"
+    ],
     "directories": {
       "output": "release/${version}"
     },
     "files": [
       "main.js",
+      "discordrpc.js",
       "preload.js",
       "public/**/*",
       "assets/**/*",
-      "package.json"
+      "package.json",
+      "!**/*.map",
+      "!**/Thumbs.db"
     ],
     "extraMetadata": {
       "main": "main.js"
