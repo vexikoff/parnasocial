@@ -992,17 +992,24 @@ html[data-theme="1"] .recentt {
 html[data-theme="1"] .settings {
   background-color: rgb(16, 16, 16);
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
-}
-html[data-theme="1"] .settings .settings {
   background-color: rgb(16, 16, 16);
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3), 0px 8px 16px rgba(0, 0, 0, 0.15), 0px 16px 32px rgba(0, 0, 0, 0.075);
 }
-html[data-theme="1"] .settings .settings .outputdev {
+html[data-theme="1"] .settings .outputdev {
   background-color: #1a1a1a !important;
   border: 1px #303030 solid !important;
 }
-html[data-theme="1"] .settings .settings .outputdev option {
+html[data-theme="1"] .settings .outputdev option {
   color: #000000 !important;
+}
+html[data-theme="1"] .predcont .pred {
+  background-color: rgba(31, 31, 31, 0.8156862745);
+}
+html[data-theme="1"] .predcont .pred .row button {
+  background-color: #1f1f1f;
+}
+html[data-theme="1"] .predcont .pred .row button:hover {
+  background-color: #303030;
 }
 
 /*# sourceMappingURL=style.css.map */
