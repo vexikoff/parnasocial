@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, session, dialog, Tray, Menu, powerSaveBlocker } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { initUpdater, startPeriodicCheck } = require('./updater/updater');
 
 require('./discordrpc.js');
 
@@ -1250,6 +1251,9 @@ if (process.platform !== 'win32') {
                     createWindow(startPage);
                 }
             });
+
+            initUpdater(mainWindow);
+            startPeriodicCheck();
         });
     }
 }

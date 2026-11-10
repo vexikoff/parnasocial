@@ -1,7 +1,7 @@
 {
   "name": "parnasocial",
   "productName": "Parnasocial",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "type": "commonjs",
   "main": "main.js",
@@ -39,7 +39,9 @@
     "install-app-deps": "electron-builder install-app-deps",
     "postinstall": "electron-builder install-app-deps"
   },
-  "dependencies": {},
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
   "devDependencies": {
     "electron": "^33.0.0",
     "electron-builder": "^24.13.3"
@@ -67,7 +69,9 @@
       "assets/**/*",
       "package.json",
       "!**/*.map",
-      "!**/Thumbs.db"
+      "!**/Thumbs.db",
+      "version.dat",
+      "updater/**/*"
     ],
     "extraMetadata": {
       "main": "main.js"
@@ -198,6 +202,10 @@
     "portable": {
       "artifactName": "${productName}-portable-${version}.${ext}"
     },
-    "publish": []
+    "publish": {
+      "provider": "github",
+      "owner": "vexikoff",
+      "repo": "parnasocial"
+    }
   }
 }
