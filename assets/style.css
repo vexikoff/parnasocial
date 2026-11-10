@@ -371,8 +371,9 @@ body {
   left: -4px;
   right: -4px;
   border-radius: 8px;
+  z-index: 989;
 }
-.main .left .trainblockbacks .hidden {
+.main .left .trainblockbacks.hidden {
   display: none;
 }
 .main .left .trainblockbacks .trainbox {
@@ -554,18 +555,19 @@ body {
   left: -4px;
   right: -4px;
   border-radius: 8px;
+  z-index: 989;
 }
-.main .center .player .trainblockbacks .hidden {
+.main .center .player .trainblockbacks.hidden {
   display: none;
 }
 .main .center .player .trainblockbacks .trainbox {
   position: absolute;
   display: flex;
   flex-direction: column;
-  right: -316px;
+  right: -288px;
   backdrop-filter: blur(8px);
   top: -2px;
-  width: 284px;
+  width: 256px;
   border: 2px #009aff solid;
   border-radius: 8px;
   height: auto;
@@ -716,8 +718,9 @@ body {
   left: -4px;
   right: -4px;
   border-radius: 8px;
+  z-index: 989;
 }
-.main .right .trainblockbacks .hidden {
+.main .right .trainblockbacks.hidden {
   display: none;
 }
 .main .right .trainblockbacks .trainbox {
