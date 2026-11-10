@@ -171,4 +171,4 @@ Maintainer: vexikoff.
 
 Greet.
 
-<video src="ghassets/parnasocialbanner.mp4" controls autoplay loop muted></video>
+![Banner](ghassets/parnasocialbanner.mp4)
