@@ -168,3 +168,7 @@ For larger changes, open an issue first and discuss the approach before submitti
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 Maintainer: vexikoff.
+
+Greet.
+
+![Banner](ghassets/parnasocialbanner.mp4)
