@@ -315,10 +315,19 @@ body {
   left: 0;
   right: 0;
   margin: auto;
-  background: radial-gradient(circle at calc(0% + 64px) 0px, #cfecff 0%, transparent 20%), radial-gradient(circle at calc(33% - 64px) 100%, #cfecff 0%, transparent 20%);
+  background: radial-gradient(circle at calc(0% + 64px) 0px, #cfecff 0%, transparent 20%), radial-gradient(circle at calc(33% - 64px) 100%, #cfecff 0%, #ffffff 20%);
   z-index: -1;
   transform: scaleX(3);
   transform-origin: top left;
+}
+
+.train {
+  position: absolute;
+  display: flex;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .segoeplus {
@@ -352,6 +361,54 @@ body {
   height: 100%;
   min-width: 156px;
   border-radius: 8px;
+}
+.main .left .trainblockbacks {
+  border: 2px #009aff solid;
+  position: absolute;
+  display: flex;
+  top: -4px;
+  bottom: -4px;
+  left: -4px;
+  right: -4px;
+  border-radius: 8px;
+}
+.main .left .trainblockbacks .hidden {
+  display: none;
+}
+.main .left .trainblockbacks .trainbox {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  right: -316px;
+  backdrop-filter: blur(8px);
+  top: -2px;
+  width: 284px;
+  border: 2px #009aff solid;
+  border-radius: 8px;
+  height: auto;
+  padding: 8px;
+  padding-top: 4px;
+}
+.main .left .trainblockbacks .trainbox button {
+  border: none;
+  box-shadow: inset 0 0 0 2px #009aff;
+  border-radius: 4px;
+  flex: 1;
+  height: 24px;
+  margin-top: 8px;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+.main .left .trainblockbacks .trainbox button:hover {
+  box-shadow: inset 0 0 0 3px #009aff;
+}
+.main .left .trainblockbacks .trainbox button.next {
+  box-shadow: none;
+  background-color: #009aff;
+  color: white;
+}
+.main .left .trainblockbacks .trainbox button.next:hover {
+  background-color: #29a8ff;
 }
 .main .left .search {
   position: absolute;
@@ -486,6 +543,55 @@ body {
   align-items: center;
   gap: 24px;
   margin-top: 12px;
+  position: relative;
+}
+.main .center .player .trainblockbacks {
+  border: 2px #009aff solid;
+  position: absolute;
+  display: flex;
+  top: -4px;
+  bottom: -4px;
+  left: -4px;
+  right: -4px;
+  border-radius: 8px;
+}
+.main .center .player .trainblockbacks .hidden {
+  display: none;
+}
+.main .center .player .trainblockbacks .trainbox {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  right: -316px;
+  backdrop-filter: blur(8px);
+  top: -2px;
+  width: 284px;
+  border: 2px #009aff solid;
+  border-radius: 8px;
+  height: auto;
+  padding: 8px;
+  padding-top: 4px;
+}
+.main .center .player .trainblockbacks .trainbox button {
+  border: none;
+  box-shadow: inset 0 0 0 2px #009aff;
+  border-radius: 4px;
+  flex: 1;
+  height: 24px;
+  margin-top: 8px;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+.main .center .player .trainblockbacks .trainbox button:hover {
+  box-shadow: inset 0 0 0 3px #009aff;
+}
+.main .center .player .trainblockbacks .trainbox button.next {
+  box-shadow: none;
+  background-color: #009aff;
+  color: white;
+}
+.main .center .player .trainblockbacks .trainbox button.next:hover {
+  background-color: #29a8ff;
 }
 .main .center .player .volume {
   transition: all cubic-bezier(0.1, 0.66, 0, 0.99) 0.3s;
@@ -600,7 +706,54 @@ body {
   height: 100%;
   min-width: 156px;
   border-radius: 8px;
-  overflow: auto;
+}
+.main .right .trainblockbacks {
+  border: 2px #009aff solid;
+  position: absolute;
+  display: flex;
+  top: -4px;
+  bottom: -4px;
+  left: -4px;
+  right: -4px;
+  border-radius: 8px;
+}
+.main .right .trainblockbacks .hidden {
+  display: none;
+}
+.main .right .trainblockbacks .trainbox {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  left: -316px;
+  backdrop-filter: blur(8px);
+  top: -2px;
+  width: 284px;
+  border: 2px #009aff solid;
+  border-radius: 8px;
+  height: auto;
+  padding: 8px;
+  padding-top: 4px;
+}
+.main .right .trainblockbacks .trainbox button {
+  border: none;
+  box-shadow: inset 0 0 0 2px #009aff;
+  border-radius: 4px;
+  flex: 1;
+  height: 24px;
+  margin-top: 8px;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+.main .right .trainblockbacks .trainbox button:hover {
+  box-shadow: inset 0 0 0 3px #009aff;
+}
+.main .right .trainblockbacks .trainbox button.next {
+  box-shadow: none;
+  background-color: #009aff;
+  color: white;
+}
+.main .right .trainblockbacks .trainbox button.next:hover {
+  background-color: #29a8ff;
 }
 .main .right .top {
   display: flex;
@@ -875,7 +1028,7 @@ html[data-theme="1"] body {
   background-color: #0C0C0C;
 }
 html[data-theme="1"] .grad {
-  background: radial-gradient(circle at calc(0% + 64px) 0px, #062234 0%, transparent 20%), radial-gradient(circle at calc(33% - 64px) 100%, #062234 0%, transparent 20%);
+  background: radial-gradient(circle at calc(0% + 64px) 0px, #062234 0%, transparent 20%), radial-gradient(circle at calc(33% - 64px) 100%, #062234 0%, #000000 20%);
 }
 html[data-theme="1"] * {
   color: #FFFFFF !important;

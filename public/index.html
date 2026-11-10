@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../assets/style.css">
@@ -47,8 +47,21 @@
         Parnasocial
     </button>
 </div>
+<div class="train">
+
+</div>
 <div class="main">
     <div class="left">
+        <div class="lefttrain trainblockbacks hidden">
+            <div class="trainbox">
+                <p style="font-size: 20px;">Current Directory</p>
+                <p style="max-resolution: 2px;">Here you can easily select the media files you need and move them to a playlist. Right-click to remove from the list.</p>
+                <div class="row">
+                    <button>Skip</button>
+                    <button class="next">Next</button>
+                </div>
+            </div>
+        </div>
         <div class="top">
             <input type="search" name="folder" id="srcc" class="search skr">
             <button class="segoeplus button" id="openfolder">&#xE838;</button>
@@ -95,6 +108,15 @@
             <h1 id="name"></h1>
         </div>
         <div class="player">
+            <div class="centertrain trainblockbacks hidden">
+                <div class="trainbox">
+                    <p style="font-size: 20px;">Player</p>
+                    <p style="max-resolution: 2px;">Here you will find your track's cover art and playback controls. The "video" button switches to video mode. You are currently in audio mode.</p>
+                    <div class="row">
+                        <button class="next">End</button>
+                    </div>
+                </div>
+            </div>
             <div class="prew">
                 <img src="../assets/unknowndark.png" class="playerimg" id="playerimg">
                 <div class="timecont"><div class="time" id="time"></div></div>
@@ -105,7 +127,9 @@
                 <p class="tracktime" style="margin-left: auto; margin-right: 4px; margin-top: auto;">0:00</p>
             </div>
             <div class="row">
-                <button class="segoeplus pr" id="videomode">&#xE714;</button>
+                <button class="segoeplus pr" id="videomode">
+                    &#xE714;
+                </button>
                 <button class="segoeplus pr" id="back">&#xE892;</button>
                 <button class="segoeplus play" id="play">&#xE768;</button>
                 <button class="segoeplus pr" id="next">&#xE893;</button>
@@ -117,6 +141,16 @@
         </div>
     </div>
     <div class="right">
+        <div class="righttrain trainblockbacks hidden">
+            <div class="trainbox">
+                <p style="font-size: 20px;">Playlist</p>
+                <p style="max-resolution: 2px;">Your added tracks will appear here. Right-click to remove from the playlist.</p>
+                <div class="row">
+                    <button>Skip</button>
+                    <button class="next">Next</button>
+                </div>
+            </div>
+        </div>
         <div class="top topp">
             <input type="search" name="folder" id="srccp" class="search skr">
             <button class="segoeplus button" id="repeatplaylist">&#xF5E7;</button>
@@ -296,5 +330,6 @@
 <script src="vizualizator.js"></script>
 <script src="settings.js"></script>
 <script src="script.js"></script>
+<script src="train.js"></script>
 </body>
 </html>

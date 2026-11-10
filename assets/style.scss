@@ -317,10 +317,19 @@ body {
     margin: auto;
     background:
             radial-gradient(circle at calc(0% + 64px) 0px, #cfecff 0%, transparent 20%),
-            radial-gradient(circle at calc(33% - 64px) 100%, #cfecff 0%, transparent 20%);
+            radial-gradient(circle at calc(33% - 64px) 100%, #cfecff 0%, #ffffff 20%);
     z-index: -1;
     transform: scaleX(3);
     transform-origin: top left;
+}
+
+.train {
+    position: absolute;
+    display: flex;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 .segoeplus {
@@ -353,6 +362,59 @@ body {
         height: 100%;
         min-width: 156px;
         border-radius: 8px;
+
+
+        .trainblockbacks {
+            border: 2px #009aff solid;
+            position: absolute;
+            display: flex;
+            top: -4px;
+            bottom: -4px;
+            left: -4px;
+            right: -4px;
+            border-radius: 8px;
+
+            .hidden {
+                display: none;
+            }
+
+            .trainbox {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                right: -316px;
+                backdrop-filter: blur(8px);
+                top: -2px;
+                width: 284px;
+                border: 2px #009aff solid;
+                border-radius: 8px;
+                height: auto;
+                padding: 8px;
+                padding-top: 4px;
+                button {
+                    border: none;
+                    box-shadow: inset 0 0 0 2px #009aff;
+                    border-radius: 4px;
+                    flex: 1;
+                    height: 24px;
+                    margin-top: 8px;
+                    background-color: transparent;
+                    box-sizing: border-box;
+                    &:hover {
+                        box-shadow: inset 0 0 0 3px #009aff;
+                    }
+                    &.next {
+                        box-shadow: none;
+                        background-color: #009aff;
+                        color: white;
+                        &:hover {
+                            background-color: #29a8ff;
+                        }
+                    }
+                }
+            }
+        }
+
         .search {
             position: absolute;
             display: flex;
@@ -475,6 +537,7 @@ body {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+
         h1 {
             font-size: 32px;
             font-variation-settings: 'wght' 300;
@@ -487,6 +550,58 @@ body {
             align-items: center;
             gap: 24px;
             margin-top: 12px;
+            position: relative;
+
+            .trainblockbacks {
+                border: 2px #009aff solid;
+                position: absolute;
+                display: flex;
+                top: -4px;
+                bottom: -4px;
+                left: -4px;
+                right: -4px;
+                border-radius: 8px;
+
+                .hidden {
+                    display: none;
+                }
+
+                .trainbox {
+                    position: absolute;
+                    display: flex;
+                    flex-direction: column;
+                    right: -316px;
+                    backdrop-filter: blur(8px);
+                    top: -2px;
+                    width: 284px;
+                    border: 2px #009aff solid;
+                    border-radius: 8px;
+                    height: auto;
+                    padding: 8px;
+                    padding-top: 4px;
+                    button {
+                        border: none;
+                        box-shadow: inset 0 0 0 2px #009aff;
+                        border-radius: 4px;
+                        flex: 1;
+                        height: 24px;
+                        margin-top: 8px;
+                        background-color: transparent;
+                        box-sizing: border-box;
+                        &:hover {
+                            box-shadow: inset 0 0 0 3px #009aff;
+                        }
+                        &.next {
+                            box-shadow: none;
+                            background-color: #009aff;
+                            color: white;
+                            &:hover {
+                                background-color: #29a8ff;
+                            }
+                        }
+                    }
+                }
+            }
 
             .volume {
                 transition: all cubic-bezier(.1,.66,0,.99) 0.3s;
@@ -611,7 +726,58 @@ body {
         height: 100%;
         min-width: 156px;
         border-radius: 8px;
-        overflow: auto;
+
+        .trainblockbacks {
+            border: 2px #009aff solid;
+            position: absolute;
+            display: flex;
+            top: -4px;
+            bottom: -4px;
+            left: -4px;
+            right: -4px;
+            border-radius: 8px;
+
+            .hidden {
+                display: none;
+            }
+
+            .trainbox {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                left: -316px;
+                backdrop-filter: blur(8px);
+                top: -2px;
+                width: 284px;
+                border: 2px #009aff solid;
+                border-radius: 8px;
+                height: auto;
+                padding: 8px;
+                padding-top: 4px;
+                button {
+                    border: none;
+                    box-shadow: inset 0 0 0 2px #009aff;
+                    border-radius: 4px;
+                    flex: 1;
+                    height: 24px;
+                    margin-top: 8px;
+                    background-color: transparent;
+                    box-sizing: border-box;
+                    &:hover {
+                        box-shadow: inset 0 0 0 3px #009aff;
+                    }
+                    &.next {
+                        box-shadow: none;
+                        background-color: #009aff;
+                        color: white;
+                        &:hover {
+                            background-color: #29a8ff;
+                        }
+                    }
+                }
+            }
+        }
+
         .top {
             display: flex;
             flex-direction: row;
@@ -894,7 +1060,7 @@ html[data-theme="1"] {
 
     .grad {
         background: radial-gradient(circle at calc(0% + 64px) 0px, #062234 0%, transparent 20%),
-        radial-gradient(circle at calc(33% - 64px) 100%, #062234 0%, transparent 20%);
+        radial-gradient(circle at calc(33% - 64px) 100%, #062234 0%, #000000 20%);
     }
 
     * {
