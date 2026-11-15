@@ -1161,8 +1161,7 @@ function createWindow(page) {
             allowRunningInsecureContent: false,
             experimentalFeatures: false,
             spellcheck: false,
-            // devTools: !app.isPackaged
-            devTools: true
+            devTools: !app.isPackaged
         }
     });
 
@@ -1180,8 +1179,6 @@ function createWindow(page) {
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
-
-    mainWindow.webContents.openDevTools();
 
     mainWindow.loadFile(targetPath).catch(() => {
         if (mainWindow && !mainWindow.isDestroyed()) {

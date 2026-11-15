@@ -1,7 +1,7 @@
 {
   "name": "parnasocial",
   "productName": "Parnasocial",
-  "version": "0.4.3",
+  "version": "0.4.5",
   "private": true,
   "type": "commonjs",
   "main": "main.js",
@@ -163,6 +163,7 @@
       }
     ],
     "win": {
+      "verifyUpdateCodeSignature": false,
       "icon": "assets/Parnasocial.ico",
       "target": [
         {
