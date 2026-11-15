@@ -68,6 +68,15 @@ const api = {
     },
     fullscreen: {
         open: () => ipcRenderer.send('parnasocial:fullscreen:open')
+    },
+    updater: {
+        check: () => ipcRenderer.send('start-update-check'),
+        download: () => ipcRenderer.send('start-download'),
+        quitAndInstall: () => ipcRenderer.send('quit-and-install'),
+        onAvailable: (callback) => subscribe('update-available', callback),
+        onProgress: (callback) => subscribe('download-progress', callback),
+        onDownloaded: (callback) => subscribe('update-downloaded', callback),
+        onError: (callback) => subscribe('update-error', callback)
     }
 };
 
@@ -82,6 +91,7 @@ Object.freeze(api.watch);
 Object.freeze(api.hardware);
 Object.freeze(api.settings);
 Object.freeze(api.fullscreen);
+Object.freeze(api.updater);
 Object.freeze(api);
 
 contextBridge.exposeInMainWorld('parnasocial', {

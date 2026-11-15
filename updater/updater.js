@@ -5,32 +5,35 @@ const { registerIpcHandlers } = require('./ipc-handlers');
 let mainWindow = null;
 let checkInterval = null;
 
+function isWindowValid() {
+    return mainWindow && !mainWindow.isDestroyed();
+}
+
 function initUpdater(window) {
     mainWindow = window;
-
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
 
     autoUpdater.on('update-available', (info) => {
-        if (mainWindow) {
+        if (isWindowValid()) {
             mainWindow.webContents.send('update-available', info.version);
         }
     });
 
     autoUpdater.on('error', (err) => {
-        if (mainWindow) {
+        if (isWindowValid()) {
             mainWindow.webContents.send('update-error', err.message);
         }
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
-        if (mainWindow) {
+        if (isWindowValid()) {
             mainWindow.webContents.send('download-progress', progressObj.percent);
         }
     });
 
     autoUpdater.on('update-downloaded', () => {
-        if (mainWindow) {
+        if (isWindowValid()) {
             mainWindow.webContents.send('update-downloaded');
         }
     });
@@ -43,7 +46,11 @@ function startPeriodicCheck() {
         clearInterval(checkInterval);
     }
     checkInterval = setInterval(() => {
-        autoUpdater.checkForUpdates();
+        autoUpdater.checkForUpdates().catch((err) => {
+            if (isWindowValid()) {
+                mainWindow.webContents.send('update-error', err.message);
+            }
+        });
     }, config.checkIntervalMs);
 }
 

@@ -1,5 +1,3 @@
-const { ipcRenderer } = require('electron');
-
 document.addEventListener('DOMContentLoaded', () => {
     const pred2contNac = document.querySelector('.pred2cont.nac');
     const pred2contRestart = document.querySelector('.pred2cont:not(.nac)');
@@ -23,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pred2contRestart) pred2contRestart.classList.add('hidden');
     }
 
-    ipcRenderer.on('update-available', (event, version) => {
+    window.parnasocial.updater.onAvailable((version) => {
         if (pred2contNac) {
             const h1 = pred2contNac.querySelector('h1');
             if (h1) h1.textContent = `New version ${version} found, update?`;
@@ -31,20 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    ipcRenderer.on('update-downloaded', () => {
+    window.parnasocial.updater.onDownloaded(() => {
         hideAllPreds();
         if (pred2contRestart) {
             pred2contRestart.classList.remove('hidden');
         }
     });
 
-    ipcRenderer.on('download-progress', (event, percent) => {
+    window.parnasocial.updater.onProgress((percent) => {
         if (progressText) {
             progressText.textContent = `Downloading: ${Math.round(percent)}%`;
         }
     });
 
-    ipcRenderer.on('update-error', (event, message) => {
+    window.parnasocial.updater.onError((message) => {
         console.error('Update error:', message);
         hideAllPreds();
     });
@@ -53,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnUpdate.addEventListener('click', () => {
             btnUpdate.disabled = true;
             btnUpdate.textContent = 'Downloading...';
-            ipcRenderer.send('start-download');
+            window.parnasocial.updater.download();
         });
     }
 
@@ -65,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnRestart2) {
         btnRestart2.addEventListener('click', () => {
-            ipcRenderer.send('quit-and-install');
+            window.parnasocial.updater.quitAndInstall();
         });
     }
 
@@ -75,5 +73,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    ipcRenderer.send('start-update-check');
+    window.parnasocial.updater.check();
 });
