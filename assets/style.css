@@ -307,7 +307,7 @@ body {
   z-index: -1;
 }
 
-.pred2cont {
+.pred2cont, .pred3cont {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -320,7 +320,7 @@ body {
   background-color: rgba(0, 0, 0, 0.3);
   z-index: 440;
 }
-.pred2cont .pred {
+.pred2cont .pred, .pred3cont .pred {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -335,15 +335,15 @@ body {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.075), 0px 8px 16px rgba(0, 0, 0, 0.05), 0px 16px 32px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
-.pred2cont .pred p {
+.pred2cont .pred p, .pred3cont .pred p {
   opacity: 0.5;
   font-size: 18px;
   margin-bottom: 6px;
 }
-.pred2cont .pred .row {
+.pred2cont .pred .row, .pred3cont .pred .row {
   margin-top: auto;
 }
-.pred2cont .pred .row button {
+.pred2cont .pred .row button, .pred3cont .pred .row button {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -356,13 +356,13 @@ body {
   background-color: #F5F5F5;
   -webkit-app-region: no-drag;
 }
-.pred2cont .pred .row button.restart {
+.pred2cont .pred .row button.restart, .pred3cont .pred .row button.restart {
   flex: 3;
 }
-.pred2cont .pred .row button:hover {
+.pred2cont .pred .row button:hover, .pred3cont .pred .row button:hover {
   background-color: #E0E0E0;
 }
-.pred2cont .pred::before {
+.pred2cont .pred::before, .pred3cont .pred::before {
   content: "";
   position: absolute;
   top: -24px;
